@@ -24,12 +24,18 @@ protected:
 	glm::mat4 view;
 	glm::mat4 viewProjection;
 
+	glm::vec2 mouseOffset;
+
+	Transform cameraTransform;
+
 	TextureAtlas textureAtlas;
 
 	std::vector<GameObject> gameObjects;
 
+	double frameTimeElapsed;
+
 	// Update all Game Objects etc...
-	void update();
+	void update(double deltaTime);
 
 	// Perform all the draw calls etc..
 	void render();

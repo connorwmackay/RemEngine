@@ -6,13 +6,6 @@
 #include "shader.h"
 #include "textureAtlas.h"
 
-struct Transform
-{
-	glm::vec3 translation;
-	glm::vec3 rotation;
-	glm::vec3 scale;
-};
-
 struct Mesh
 {
 	GLuint vao;

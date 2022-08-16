@@ -5,26 +5,7 @@
 GameObject::GameObject(const Mesh& mesh, const Transform& transform, const glm::mat4& viewProjection)
 	: mesh(mesh), transform(transform)
 {
-	model = createModel(transform.translation, transform.rotation, transform.scale);
-	modelViewProjection = viewProjection * model;
-}
-
-void GameObject::setPosition(glm::vec3 position)
-{
-	transform.translation = position;
-	model = createModel(transform.translation, transform.rotation, transform.scale);
-}
-
-void GameObject::setRotation(glm::vec3 rotation)
-{
-	transform.rotation = rotation;
-	model = createModel(transform.translation, transform.rotation, transform.scale);
-}
-
-void GameObject::setScale(glm::vec3 scale)
-{
-	transform.scale = scale;
-	model = createModel(transform.translation, transform.rotation, transform.scale);
+	modelViewProjection = viewProjection * transform.modelMatrixGet();
 }
 
 Transform GameObject::getTransform() const
@@ -34,7 +15,7 @@ Transform GameObject::getTransform() const
 
 void GameObject::update(const glm::mat4& viewProjection)
 {
-	modelViewProjection = viewProjection * model;
+	modelViewProjection = viewProjection * transform.modelMatrixGet();
 
 	// Pass the modelViewProjection matrix to the shader
 	glUseProgram(mesh.shaderProgram);

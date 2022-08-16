@@ -1,4 +1,4 @@
-#include "GameInstance.h"
+#include "gameInstance.h"
 
 void GLAPIENTRY
 MessageCallback(GLenum source,
@@ -9,12 +9,16 @@ MessageCallback(GLenum source,
 	const GLchar* message,
 	const void* userParam)
 {
-	fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-		(type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
-		type, severity, message);
+	if (severity != 0x9147 && severity != 0x826b) {
+		fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+			(type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+			type, severity, message);
+	}
 }
 
 GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int width, unsigned int height)
+	: frameTimeElapsed(0.0f), mouseOffset(glm::vec2(0.0f, 0.0f)),
+	cameraTransform(Transform(glm::vec3(0.0f, 2.0f, -10.0f), glm::vec3(45.0f, 0.0f, 0.0f), glm::vec3(1.0f), true))
 {
 	assert(glfwInit());
 
@@ -25,6 +29,7 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 	// Window creation
 	window = glfwCreateWindow(width, height, title, nullptr, nullptr);
 	glfwMakeContextCurrent(window);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// OpenGL Setup
 	assert(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress));
@@ -37,16 +42,63 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 
 	// Matrices
 	projection = createPerspective(width, height, fieldOfView);
-	view = createView(glm::vec3(0.0f, 0.0f, -10.0f), glm::vec3(30.0f, 0.0f, 0.0f));
+
+	view = glm::lookAt(
+		cameraTransform.translationGet(),
+		cameraTransform.translationGet() + cameraTransform.getForwardVector(),
+		cameraTransform.getUpVector()
+	);
+
 	viewProjection = projection * view;
 
 	gameObjects = std::vector<GameObject>();
 	textureAtlas = TextureAtlas(false);
 }
 
-void GameInstance::update()
+void GameInstance::update(double deltaTime)
 {
-	// TODO: Update projection / view if relavent changes have occured
+	// TODO: Separate the logic that changes the cameraTransform and put it into its own file
+
+	// Keyboard Input
+	float moveSpeed = 12.0f * (float) deltaTime;
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		cameraTransform.translationApplyOffset(cameraTransform.getForwardVector() * moveSpeed);
+	}
+	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		cameraTransform.translationApplyOffset(cameraTransform.getForwardVector() * -moveSpeed);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		cameraTransform.translationApplyOffset(cameraTransform.getRightVector() * -moveSpeed);
+	}
+	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		cameraTransform.translationApplyOffset(cameraTransform.getRightVector() * moveSpeed);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+	{
+		cameraTransform.translationApplyOffset(glm::vec3(0.0f, moveSpeed, 0.0f));
+	}
+	else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+	{
+		cameraTransform.translationApplyOffset(glm::vec3(0.0f, -moveSpeed, 0.0f));
+	}
+
+	// Mouse Input
+	cameraTransform.rotationApplyXOffset(mouseOffset.x * (float)deltaTime);
+	cameraTransform.rotationApplyYOffset(mouseOffset.y * (float)deltaTime);
+
+	// Update the view to the current cameraTransform
+	view = glm::lookAt(
+		cameraTransform.translationGet(),
+		cameraTransform.translationGet() + cameraTransform.getForwardVector(),
+		cameraTransform.getUpVector()
+	);
+
 	viewProjection = projection * view;
 
 	for (GameObject& gameObject : gameObjects)
@@ -78,10 +130,24 @@ void GameInstance::runGameLoop()
 {
 	while (!glfwWindowShouldClose(window))
 	{
-		update();
+
+		double startFrameTimeElapsed = glfwGetTime();
+		double mouseStartX, mouseStartY;
+		glfwGetCursorPos(window, &mouseStartX, &mouseStartY);
+
+		update(frameTimeElapsed);
 		render();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
+		double mouseEndX, mouseEndY;
+		glfwGetCursorPos(window, &mouseEndX, &mouseEndY);
+		mouseOffset = glm::vec2(mouseStartX - mouseEndX, mouseEndY - mouseStartY);
+		mouseOffset *= 0.15;
+
+		double endFrameTimeElapsed = glfwGetTime();
+		frameTimeElapsed = endFrameTimeElapsed - startFrameTimeElapsed;
+		printf("FPS: %f\n", (1 / frameTimeElapsed));
 	}
 
 	cleanup();
