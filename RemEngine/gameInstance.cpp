@@ -23,10 +23,12 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 	fieldOfView(fieldOfView),
 	mouseOffset(glm::vec2(0.0f, 0.0f)),
 	textureAtlas(TextureAtlas()),
-	gameObjects(std::vector<GameObject>()),
 	lastKnownWindowSize(glm::vec2(width, height)),
 	frameTimeElapsed(0.0),
-	spectator(12.0f, 0.2f, Transform(glm::vec3(0.0f, 2.0f, -10.0f), glm::vec3(45.0f, 0.0f, 0.0f), glm::vec3(1.0f), true))
+	spectator(12.0f, 0.2f, Transform(glm::vec3(0.0f, 2.0f, -10.0f), glm::vec3(45.0f, 0.0f, 0.0f), glm::vec3(1.0f), true)),
+	grass(Block()),
+	dirt(Block()),
+	stone(Block())
 {
 	assert(glfwInit());
 
@@ -47,6 +49,11 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
 
+	// Perform an initial clear and buffer swap
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Clear to Black
+	glfwSwapBuffers(window);
+
 	// Setup projection
 	projection = createPerspective(width, height, fieldOfView);
 
@@ -61,6 +68,48 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 
 	// Setup the textureAtlas
 	textureAtlas = TextureAtlas(false);
+
+	grass = Block(textureAtlas, BlockType::Grass);
+	dirt = Block(textureAtlas, BlockType::Dirt);
+	stone = Block(textureAtlas, BlockType::Stone);
+
+	for (int y = 0; y > -10; y--) {
+		BlockType blockType;
+
+		if (y == 0)
+		{
+			blockType = BlockType::Grass;
+		}
+		else if (y < 0 && y > -4)
+		{
+			blockType = BlockType::Dirt;
+		}
+		else
+		{
+			blockType = BlockType::Stone;
+		}
+
+		for (int z = -32; z < 0; z++) {
+			for (int x = -16; x <= 16; x++)
+			{
+				Transform transform = Transform(glm::vec3(x, y, z), glm::vec3(0.0f), glm::vec3(1.0f), true);
+				BlockInstance blockInstance = createBlockInstance(transform);
+
+				switch(blockType)
+				{
+				case BlockType::Grass:
+					grass.addBlockInstance(blockInstance);
+					break;
+				case BlockType::Dirt:
+					dirt.addBlockInstance(blockInstance);
+					break;
+				case BlockType::Stone:
+					stone.addBlockInstance(blockInstance);
+					break;
+				}
+			}
+		}
+	}
 }
 
 void GameInstance::update(double deltaTime)
@@ -80,11 +129,6 @@ void GameInstance::update(double deltaTime)
 	);
 
 	viewProjection = projection * view;
-
-	for (GameObject& gameObject : gameObjects)
-	{
-		gameObject.update(viewProjection);
-	}
 }
 
 void GameInstance::render()
@@ -92,10 +136,9 @@ void GameInstance::render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Clear to Black
 
-	for (GameObject& gameObject : gameObjects)
-	{
-		gameObject.draw(textureAtlas);
-	}
+	grass.drawAll(textureAtlas, viewProjection);
+	dirt.drawAll(textureAtlas, viewProjection);
+	stone.drawAll(textureAtlas, viewProjection);
 }
 
 void GameInstance::cleanup()
@@ -132,15 +175,6 @@ void GameInstance::runGameLoop()
 	cleanup();
 }
 
-void GameInstance::addGameObject(const GameObject& gameObject)
-{
-	gameObjects.push_back(gameObject);
-}
-
-void GameInstance::removeGameObject(int index)
-{
-	gameObjects.erase(std::begin(gameObjects) + index);
-}
 glm::mat4 GameInstance::getViewProjection() const
 {
 	return viewProjection;

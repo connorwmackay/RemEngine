@@ -4,8 +4,9 @@
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
 
-#include "gameObject.h"
+#include "block.h"
 #include "spectator.h"
+#include "textureAtlas.h"
 #include "world.h"
 
 void GLAPIENTRY
@@ -31,13 +32,13 @@ protected:
 
 	TextureAtlas textureAtlas;
 
-	std::vector<GameObject> gameObjects;
-
 	glm::vec2 lastKnownWindowSize;
 
 	double frameTimeElapsed;
 
 	Spectator spectator;
+
+	Block grass, dirt, stone;
 
 	// Update all Game Objects etc...
 	void update(double deltaTime);
@@ -55,9 +56,6 @@ public:
 	TextureAtlas getTextureAtlas();
 
 	void runGameLoop();
-
-	void addGameObject(const GameObject& gameObject);
-	void removeGameObject(int index);
 
 	glm::mat4 getViewProjection() const;
 };
