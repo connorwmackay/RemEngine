@@ -24,6 +24,8 @@ protected:
 	glm::mat4 view;
 	glm::mat4 viewProjection;
 
+	float fieldOfView;
+
 	glm::vec2 mouseOffset;
 
 	Transform cameraTransform;
@@ -32,6 +34,8 @@ protected:
 
 	std::vector<GameObject> gameObjects;
 
+	glm::vec2 lastKnownWindowSize;
+
 	double frameTimeElapsed;
 
 	// Update all Game Objects etc...
@@ -39,6 +43,8 @@ protected:
 
 	// Perform all the draw calls etc..
 	void render();
+
+	void handleWindowResize();
 
 	// Free any resources...
 	void cleanup();

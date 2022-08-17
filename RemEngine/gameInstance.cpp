@@ -17,23 +17,23 @@ MessageCallback(GLenum source,
 }
 
 GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int width, unsigned int height)
-	: frameTimeElapsed(0.0f), mouseOffset(glm::vec2(0.0f, 0.0f)),
+	: fieldOfView(fieldOfView), frameTimeElapsed(0.0f), mouseOffset(glm::vec2(0.0f, 0.0f)),
 	cameraTransform(Transform(glm::vec3(0.0f, 2.0f, -10.0f), glm::vec3(45.0f, 0.0f, 0.0f), glm::vec3(1.0f), true))
 {
 	assert(glfwInit());
 
 	//  GLFW settings
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
 	// Window creation
 	window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+	lastKnownWindowSize = glm::vec2(width, height);
 	glfwMakeContextCurrent(window);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// OpenGL Setup
 	assert(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress));
-	glViewport(0, 0, width, height);
 
 	// OpenGL Settings
 	glEnable(GL_DEPTH_TEST);
@@ -57,6 +57,8 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 
 void GameInstance::update(double deltaTime)
 {
+	handleWindowResize();
+
 	// TODO: Separate the logic that changes the cameraTransform and put it into its own file
 
 	// Keyboard Input
@@ -170,4 +172,21 @@ glm::mat4 GameInstance::getViewProjection() const
 TextureAtlas GameInstance::getTextureAtlas()
 {
 	return textureAtlas;
+}
+
+void GameInstance::handleWindowResize()
+{
+	// Resize the OpenGL viewport if the window size has changed...
+	int newWindowWidth, newWindowHeight;
+	glfwGetWindowSize(window, &newWindowWidth, &newWindowHeight);
+
+	if (newWindowWidth > 0 && newWindowWidth != (int)lastKnownWindowSize.x ||
+		newWindowHeight > 0 && newWindowHeight != (int)lastKnownWindowSize.y)
+	{
+		glViewport(0, 0, newWindowWidth, newWindowHeight);
+		lastKnownWindowSize = glm::vec2(newWindowWidth, newWindowHeight);
+
+		projection = createPerspective(newWindowWidth, newWindowHeight, fieldOfView);
+		viewProjection = projection * view;
+	}
 }
