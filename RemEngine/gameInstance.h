@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 
 #include "gameObject.h"
+#include "spectator.h"
 #include "world.h"
 
 void GLAPIENTRY
@@ -28,8 +29,6 @@ protected:
 
 	glm::vec2 mouseOffset;
 
-	Transform cameraTransform;
-
 	TextureAtlas textureAtlas;
 
 	std::vector<GameObject> gameObjects;
@@ -37,6 +36,8 @@ protected:
 	glm::vec2 lastKnownWindowSize;
 
 	double frameTimeElapsed;
+
+	Spectator spectator;
 
 	// Update all Game Objects etc...
 	void update(double deltaTime);

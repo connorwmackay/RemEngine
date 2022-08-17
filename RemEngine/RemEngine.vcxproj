@@ -145,6 +145,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="shader.cpp" />
+    <ClCompile Include="spectator.cpp" />
     <ClCompile Include="textureAtlas.cpp" />
     <ClCompile Include="transform.cpp" />
   </ItemGroup>
@@ -153,6 +154,7 @@
     <ClInclude Include="gameObject.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="spectator.h" />
     <ClInclude Include="textureAtlas.h" />
     <ClInclude Include="transform.h" />
     <ClInclude Include="world.h" />

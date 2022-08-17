@@ -17,8 +17,16 @@ MessageCallback(GLenum source,
 }
 
 GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int width, unsigned int height)
-	: fieldOfView(fieldOfView), frameTimeElapsed(0.0f), mouseOffset(glm::vec2(0.0f, 0.0f)),
-	cameraTransform(Transform(glm::vec3(0.0f, 2.0f, -10.0f), glm::vec3(45.0f, 0.0f, 0.0f), glm::vec3(1.0f), true))
+	: projection(glm::mat4(1.0f)),
+    view(glm::mat4(1.0f)),
+	viewProjection(glm::mat4(1.0f)),
+	fieldOfView(fieldOfView),
+	mouseOffset(glm::vec2(0.0f, 0.0f)),
+	textureAtlas(TextureAtlas()),
+	gameObjects(std::vector<GameObject>()),
+	lastKnownWindowSize(glm::vec2(width, height)),
+	frameTimeElapsed(0.0),
+	spectator(12.0f, 0.2f, Transform(glm::vec3(0.0f, 2.0f, -10.0f), glm::vec3(45.0f, 0.0f, 0.0f), glm::vec3(1.0f), true))
 {
 	assert(glfwInit());
 
@@ -28,7 +36,6 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 
 	// Window creation
 	window = glfwCreateWindow(width, height, title, nullptr, nullptr);
-	lastKnownWindowSize = glm::vec2(width, height);
 	glfwMakeContextCurrent(window);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -40,18 +47,19 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
 
-	// Matrices
+	// Setup projection
 	projection = createPerspective(width, height, fieldOfView);
 
+	// Setup the view
 	view = glm::lookAt(
-		cameraTransform.translationGet(),
-		cameraTransform.translationGet() + cameraTransform.getForwardVector(),
-		cameraTransform.getUpVector()
+		spectator.getTransform().translationGet(),
+		spectator.getTransform().translationGet() + spectator.getTransform().getForwardVector(),
+		spectator.getTransform().getUpVector()
 	);
 
 	viewProjection = projection * view;
 
-	gameObjects = std::vector<GameObject>();
+	// Setup the textureAtlas
 	textureAtlas = TextureAtlas(false);
 }
 
@@ -59,46 +67,16 @@ void GameInstance::update(double deltaTime)
 {
 	handleWindowResize();
 
-	// TODO: Separate the logic that changes the cameraTransform and put it into its own file
-
 	// Keyboard Input
 	float moveSpeed = 12.0f * (float) deltaTime;
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	{
-		cameraTransform.translationApplyOffset(cameraTransform.getForwardVector() * moveSpeed);
-	}
-	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		cameraTransform.translationApplyOffset(cameraTransform.getForwardVector() * -moveSpeed);
-	}
 
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-		cameraTransform.translationApplyOffset(cameraTransform.getRightVector() * -moveSpeed);
-	}
-	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	{
-		cameraTransform.translationApplyOffset(cameraTransform.getRightVector() * moveSpeed);
-	}
-
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
-	{
-		cameraTransform.translationApplyOffset(glm::vec3(0.0f, moveSpeed, 0.0f));
-	}
-	else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-	{
-		cameraTransform.translationApplyOffset(glm::vec3(0.0f, -moveSpeed, 0.0f));
-	}
-
-	// Mouse Input
-	cameraTransform.rotationApplyXOffset(mouseOffset.x * (float)deltaTime);
-	cameraTransform.rotationApplyYOffset(mouseOffset.y * (float)deltaTime);
+	spectator.checkInput(window, deltaTime, mouseOffset);
 
 	// Update the view to the current cameraTransform
 	view = glm::lookAt(
-		cameraTransform.translationGet(),
-		cameraTransform.translationGet() + cameraTransform.getForwardVector(),
-		cameraTransform.getUpVector()
+		spectator.getTransform().translationGet(),
+		spectator.getTransform().translationGet() + spectator.getTransform().getForwardVector(),
+		spectator.getTransform().getUpVector()
 	);
 
 	viewProjection = projection * view;
@@ -145,7 +123,6 @@ void GameInstance::runGameLoop()
 		double mouseEndX, mouseEndY;
 		glfwGetCursorPos(window, &mouseEndX, &mouseEndY);
 		mouseOffset = glm::vec2(mouseStartX - mouseEndX, mouseEndY - mouseStartY);
-		mouseOffset *= 0.15;
 
 		double endFrameTimeElapsed = glfwGetTime();
 		frameTimeElapsed = endFrameTimeElapsed - startFrameTimeElapsed;
