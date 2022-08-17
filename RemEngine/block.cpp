@@ -202,8 +202,16 @@ Block::Block(TextureAtlas& textureAtlas, const BlockType& blockType)
 	glUniform1i(textureSamplerLoc, 0);
 }
 
-void Block::updateBlockInstanceModels()
+void Block::updateBlockInstanceModels(bool shouldDeleteLastBuffer)
 {
+	if (shouldDeleteLastBuffer)
+	{
+		if (glIsBuffer(lastModelBuffer))
+		{
+			glDeleteBuffers(1, &lastModelBuffer);
+		}
+	}
+
 	blockInstanceModels = std::vector<glm::mat4>();
 
 	for (const BlockInstance& blockInstance : blockInstances)
@@ -217,6 +225,7 @@ void Block::updateBlockInstanceModels()
 
 	GLuint modelsBuf;
 	glGenBuffers(1, &modelsBuf);
+	lastModelBuffer = modelsBuf;
 	glBindBuffer(GL_ARRAY_BUFFER, modelsBuf);
 	glBufferData(GL_ARRAY_BUFFER, blockInstanceModels.size() * sizeof(glm::mat4), &blockInstanceModels[0], GL_STATIC_DRAW);
 
@@ -240,7 +249,6 @@ void Block::updateBlockInstanceModels()
 void Block::addBlockInstance(const BlockInstance& block)
 {
 	blockInstances.push_back(block);
-	updateBlockInstanceModels();
 }
 
 void Block::updateBlockInstance(const BlockInstance& block)
@@ -252,8 +260,6 @@ void Block::updateBlockInstance(const BlockInstance& block)
 			break;
 		}
 	}
-
-	updateBlockInstanceModels();
 }
 
 void Block::removeBlockInstance(unsigned int blockInstanceId)
@@ -273,12 +279,12 @@ void Block::removeBlockInstance(unsigned int blockInstanceId)
 	{
 		blockInstances.erase(std::begin(blockInstances) + indexToDelete);
 	}
-
-	updateBlockInstanceModels();
 }
 
 void Block::drawAll(TextureAtlas& textureAtlas, glm::mat4 viewProjection)
 {
+	updateBlockInstanceModels(true);
+
 	if (!blockInstances.empty())
 	{
 		glUseProgram(mesh.shaderProgram);
