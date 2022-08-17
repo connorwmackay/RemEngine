@@ -8,6 +8,7 @@
 #include "spectator.h"
 #include "textureAtlas.h"
 #include "world.h"
+#include "world_matrices.h"
 
 void GLAPIENTRY
 MessageCallback(GLenum source,
@@ -38,7 +39,7 @@ protected:
 
 	Spectator spectator;
 
-	Block grass, dirt, stone;
+	World world;
 
 	// Update all Game Objects etc...
 	void update(double deltaTime);

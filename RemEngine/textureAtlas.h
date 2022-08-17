@@ -7,7 +7,8 @@ enum class BlockType
 {
 	Grass = 2,
 	Dirt = 1,
-	Stone = 0
+	Stone = 0,
+	Air = 3
 };
 
 struct FaceTexture

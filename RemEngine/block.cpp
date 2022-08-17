@@ -60,7 +60,7 @@ Block::Block(TextureAtlas& textureAtlas, const BlockType& blockType)
 		-0.5f, -0.5f, 0.5f, // Bottom-Front-Left
 		0.5f, -0.5f, -0.5f, // Bottom-Back-Right
 		-0.5f, -0.5f, -0.5f, // Bottom-Back-Left
-		});
+	});
 
 	std::vector<GLint> blockIndices = std::vector<GLint>();
 	blockIndices.assign({
@@ -81,7 +81,7 @@ Block::Block(TextureAtlas& textureAtlas, const BlockType& blockType)
 
 		// Bottom Face
 		21, 22, 23, 20, 21, 22
-		});
+	});
 
 	// Get the texture coordinates...
 	std::vector<GLfloat> textureCoordinates = std::vector<GLfloat>();
@@ -202,6 +202,12 @@ Block::Block(TextureAtlas& textureAtlas, const BlockType& blockType)
 	glUniform1i(textureSamplerLoc, 0);
 }
 
+void Block::resetInstances()
+{
+	blockInstances = std::vector<BlockInstance>();
+	blockInstanceModels = std::vector<glm::mat4>();
+}
+
 void Block::updateBlockInstanceModels(bool shouldDeleteLastBuffer)
 {
 	if (shouldDeleteLastBuffer)
@@ -213,37 +219,39 @@ void Block::updateBlockInstanceModels(bool shouldDeleteLastBuffer)
 	}
 
 	blockInstanceModels = std::vector<glm::mat4>();
-
 	for (const BlockInstance& blockInstance : blockInstances)
 	{
 		glm::mat4 model = blockInstance.transform.modelMatrixGet();
 		blockInstanceModels.push_back(model);
 	}
 
-	size_t vec4Size = sizeof(glm::vec4);
-	glBindVertexArray(mesh.vao);
+	if (!blockInstanceModels.empty()) {
 
-	GLuint modelsBuf;
-	glGenBuffers(1, &modelsBuf);
-	lastModelBuffer = modelsBuf;
-	glBindBuffer(GL_ARRAY_BUFFER, modelsBuf);
-	glBufferData(GL_ARRAY_BUFFER, blockInstanceModels.size() * sizeof(glm::mat4), &blockInstanceModels[0], GL_STATIC_DRAW);
+		size_t vec4Size = sizeof(glm::vec4);
+		glBindVertexArray(mesh.vao);
 
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)0);
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)vec4Size);
-	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(2 * vec4Size));
-	glEnableVertexAttribArray(5);
-	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(3 * vec4Size));
+		GLuint modelsBuf;
+		glGenBuffers(1, &modelsBuf);
+		lastModelBuffer = modelsBuf;
+		glBindBuffer(GL_ARRAY_BUFFER, modelsBuf);
+		glBufferData(GL_ARRAY_BUFFER, blockInstanceModels.size() * sizeof(glm::mat4), &blockInstanceModels[0], GL_STATIC_DRAW);
 
-	glVertexAttribDivisor(2, 1);
-	glVertexAttribDivisor(3, 1);
-	glVertexAttribDivisor(4, 1);
-	glVertexAttribDivisor(5, 1);
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)0);
+		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)vec4Size);
+		glEnableVertexAttribArray(4);
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(2 * vec4Size));
+		glEnableVertexAttribArray(5);
+		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(3 * vec4Size));
 
-	glBindVertexArray(0);
+		glVertexAttribDivisor(2, 1);
+		glVertexAttribDivisor(3, 1);
+		glVertexAttribDivisor(4, 1);
+		glVertexAttribDivisor(5, 1);
+
+		glBindVertexArray(0);
+	}
 }
 
 void Block::addBlockInstance(const BlockInstance& block)

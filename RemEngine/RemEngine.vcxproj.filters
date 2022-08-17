@@ -42,12 +42,15 @@
     <ClCompile Include="block.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="world.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="world.h">
+    <ClInclude Include="world_matrices.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mesh.h">
@@ -66,6 +69,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="block.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="world.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

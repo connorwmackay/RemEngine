@@ -71,12 +71,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\Connor\source\repos\RemEngine\ExternalLibs\stb_image;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\assimp\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glfw-3.3.7.bin.WIN64\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glad\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glm-0.9.9.8\glm;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\Connor\source\repos\RemEngine\ExternalLibs\boost_1_80_0;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\stb_image;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\assimp\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glfw-3.3.7.bin.WIN64\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glad\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glm-0.9.9.8\glm;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Connor\source\repos\RemEngine\ExternalLibs\assimp\lib\Release;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glfw-3.3.7.bin.WIN64\lib-vc2022;$(LibraryPath)</LibraryPath>
     <ExecutablePath>C:\Users\Connor\source\repos\RemEngine\ExternalLibs\assimp\bin\Release;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glfw-3.3.7.bin.WIN64\lib-vc2022;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Users\Connor\source\repos\RemEngine\ExternalLibs\stb_image;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\assimp\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glfw-3.3.7.bin.WIN64\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glad\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glm-0.9.9.8\glm;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\Connor\source\repos\RemEngine\ExternalLibs\boost_1_80_0;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\stb_image;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\assimp\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glfw-3.3.7.bin.WIN64\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glad\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glm-0.9.9.8\glm;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Connor\source\repos\RemEngine\ExternalLibs\assimp\lib\Release;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glfw-3.3.7.bin.WIN64\lib-vc2022;$(LibraryPath)</LibraryPath>
     <ExecutablePath>C:\Users\Connor\source\repos\RemEngine\ExternalLibs\assimp\bin\Release;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glfw-3.3.7.bin.WIN64\lib-vc2022;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
@@ -144,6 +144,7 @@
     <ClCompile Include="gameInstance.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
+    <ClCompile Include="world.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="spectator.cpp" />
     <ClCompile Include="textureAtlas.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="textureAtlas.h" />
     <ClInclude Include="transform.h" />
     <ClInclude Include="world.h" />
+    <ClInclude Include="world_matrices.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Assets\coloured.frag" />

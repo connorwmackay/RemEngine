@@ -26,9 +26,7 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 	lastKnownWindowSize(glm::vec2(width, height)),
 	frameTimeElapsed(0.0),
 	spectator(12.0f, 0.2f, Transform(glm::vec3(0.0f, 2.0f, -10.0f), glm::vec3(45.0f, 0.0f, 0.0f), glm::vec3(1.0f), true)),
-	grass(Block()),
-	dirt(Block()),
-	stone(Block())
+	world(World())
 {
 	assert(glfwInit());
 
@@ -40,6 +38,7 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 	window = glfwCreateWindow(width, height, title, nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSwapInterval(0); // 1 for VSYNC, 0 for no VSYNC
 
 	// OpenGL Setup
 	assert(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress));
@@ -69,47 +68,7 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 	// Setup the textureAtlas
 	textureAtlas = TextureAtlas(false);
 
-	grass = Block(textureAtlas, BlockType::Grass);
-	dirt = Block(textureAtlas, BlockType::Dirt);
-	stone = Block(textureAtlas, BlockType::Stone);
-
-	for (int y = 0; y > -10; y--) {
-		BlockType blockType;
-
-		if (y == 0)
-		{
-			blockType = BlockType::Grass;
-		}
-		else if (y < 0 && y > -4)
-		{
-			blockType = BlockType::Dirt;
-		}
-		else
-		{
-			blockType = BlockType::Stone;
-		}
-
-		for (int z = -32; z < 0; z++) {
-			for (int x = -16; x <= 16; x++)
-			{
-				Transform transform = Transform(glm::vec3(x, y, z), glm::vec3(0.0f), glm::vec3(1.0f), true);
-				BlockInstance blockInstance = createBlockInstance(transform);
-
-				switch(blockType)
-				{
-				case BlockType::Grass:
-					grass.addBlockInstance(blockInstance);
-					break;
-				case BlockType::Dirt:
-					dirt.addBlockInstance(blockInstance);
-					break;
-				case BlockType::Stone:
-					stone.addBlockInstance(blockInstance);
-					break;
-				}
-			}
-		}
-	}
+	world = World(false);
 }
 
 void GameInstance::update(double deltaTime)
@@ -136,9 +95,7 @@ void GameInstance::render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Clear to Black
 
-	grass.drawAll(textureAtlas, viewProjection);
-	dirt.drawAll(textureAtlas, viewProjection);
-	stone.drawAll(textureAtlas, viewProjection);
+	world.draw(textureAtlas, viewProjection);
 }
 
 void GameInstance::cleanup()
@@ -153,7 +110,6 @@ void GameInstance::runGameLoop()
 {
 	while (!glfwWindowShouldClose(window))
 	{
-
 		double startFrameTimeElapsed = glfwGetTime();
 		double mouseStartX, mouseStartY;
 		glfwGetCursorPos(window, &mouseStartX, &mouseStartY);
@@ -169,7 +125,6 @@ void GameInstance::runGameLoop()
 
 		double endFrameTimeElapsed = glfwGetTime();
 		frameTimeElapsed = endFrameTimeElapsed - startFrameTimeElapsed;
-		printf("FPS: %f\n", (1 / frameTimeElapsed));
 	}
 
 	cleanup();

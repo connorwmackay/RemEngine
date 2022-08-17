@@ -1,4 +1,7 @@
 #include "mesh.h"
+
+#include <glm/gtc/type_ptr.hpp>
+
 #include "world.h"
 
 Mesh createColouredCube(glm::vec3 colour)

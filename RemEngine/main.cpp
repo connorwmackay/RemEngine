@@ -8,7 +8,7 @@
 #include "gameInstance.h"
 #include "mesh.h"
 #include "shader.h"
-#include "world.h"
+#include "world_matrices.h"
 
 int main(int argc, char **argv)
 {

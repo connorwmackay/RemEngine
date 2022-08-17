@@ -31,6 +31,7 @@ public:
 	Block();
 	Block(TextureAtlas& textureAtlas, const BlockType& blockType);
 
+	void resetInstances();
 	void addBlockInstance(const BlockInstance& block);
 	void updateBlockInstance(const BlockInstance& block);
 	void removeBlockInstance(unsigned int blockInstanceId);
