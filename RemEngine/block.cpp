@@ -1,5 +1,6 @@
 #include "block.h"
 
+#include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
 
 BlockInstance createBlockInstance(const Transform& transform)
@@ -200,6 +201,11 @@ Block::Block(TextureAtlas& textureAtlas, const BlockType& blockType)
 	glUseProgram(blockShader);
 	GLint textureSamplerLoc = glGetUniformLocation(blockShader, "textureSampler");
 	glUniform1i(textureSamplerLoc, 0);
+
+	GLuint modelsBuf;
+	glGenBuffers(1, &modelsBuf);
+	lastModelBuffer = modelsBuf;
+	updateBlockInstanceModels(true);
 }
 
 void Block::resetInstances()
@@ -210,32 +216,58 @@ void Block::resetInstances()
 
 void Block::updateBlockInstanceModels(bool shouldDeleteLastBuffer)
 {
-	if (shouldDeleteLastBuffer)
-	{
-		if (glIsBuffer(lastModelBuffer))
+	double startFuncTimer = glfwGetTime();
+	if (blockInstanceModels.size() > 0) {
+		glBindBuffer(GL_ARRAY_BUFFER, lastModelBuffer);
+
+		GLint size;
+		glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+
+		if (blockInstanceModels.size() * sizeof(glm::mat4) > size)
 		{
-			glDeleteBuffers(1, &lastModelBuffer);
+			glBufferData(
+				GL_ARRAY_BUFFER,
+				blockInstanceModels.size() * sizeof(glm::mat4) + (10000 * sizeof(glm::mat4)),
+				NULL,
+				GL_STREAM_DRAW
+			);
+
+			glBufferSubData(
+				GL_ARRAY_BUFFER,
+				0,
+				blockInstanceModels.size() * sizeof(glm::mat4),
+				blockInstanceModels.data()
+			);
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
+		else
+		{
+
+			glBufferSubData(
+				GL_ARRAY_BUFFER,
+				0,
+				blockInstanceModels.size() * sizeof(glm::mat4),
+				blockInstanceModels.data()
+			);
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
 	}
-
-	blockInstanceModels = std::vector<glm::mat4>();
-	for (const BlockInstance& blockInstance : blockInstances)
+	else
 	{
-		glm::mat4 model = blockInstance.transform.modelMatrixGet();
-		blockInstanceModels.push_back(model);
-	}
-
-	if (!blockInstanceModels.empty()) {
+		printf("Yes\n");
+		glBindBuffer(GL_ARRAY_BUFFER, lastModelBuffer);
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			20000 * sizeof(glm::mat4), // TODO: Set as the maximum number of blocks it may have to hold?
+			NULL,
+			GL_STREAM_DRAW
+		);
 
 		size_t vec4Size = sizeof(glm::vec4);
+
 		glBindVertexArray(mesh.vao);
-
-		GLuint modelsBuf;
-		glGenBuffers(1, &modelsBuf);
-		lastModelBuffer = modelsBuf;
-		glBindBuffer(GL_ARRAY_BUFFER, modelsBuf);
-		glBufferData(GL_ARRAY_BUFFER, blockInstanceModels.size() * sizeof(glm::mat4), &blockInstanceModels[0], GL_STATIC_DRAW);
-
 		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)0);
 		glEnableVertexAttribArray(3);
@@ -249,28 +281,45 @@ void Block::updateBlockInstanceModels(bool shouldDeleteLastBuffer)
 		glVertexAttribDivisor(3, 1);
 		glVertexAttribDivisor(4, 1);
 		glVertexAttribDivisor(5, 1);
-
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
+	}
+
+	double endFuncTimer = glfwGetTime();
+	printf("Update Model Matrices Function Time: %fms\n", (endFuncTimer - startFuncTimer) * 1000);
+}
+
+void Block::addBlockInstance(const BlockInstance& block, bool shouldUpdateModels)
+{
+	blockInstances.push_back(block);
+	blockInstanceModels.push_back(block.transform.modelMatrixGet());
+
+	if (shouldUpdateModels)
+	{
+		updateBlockInstanceModels(true);
 	}
 }
 
-void Block::addBlockInstance(const BlockInstance& block)
+// TODO: Make this work properly
+void Block::updateBlockInstance(const BlockInstance& block, bool shouldUpdateModels)
 {
-	blockInstances.push_back(block);
-}
-
-void Block::updateBlockInstance(const BlockInstance& block)
-{
-	for (BlockInstance& blockInstance : blockInstances)
+	for (int i = 0; i < blockInstances.size(); i++)
 	{
+		BlockInstance& blockInstance = blockInstances.at(i);
+
 		if (blockInstance.id == block.id) {
 			blockInstance = block;
+			blockInstanceModels.at(i) = block.transform.modelMatrixGet();
 			break;
 		}
 	}
+
+	if (shouldUpdateModels) {
+		updateBlockInstanceModels(true);
+	}
 }
 
-void Block::removeBlockInstance(unsigned int blockInstanceId)
+void Block::removeBlockInstance(unsigned int blockInstanceId, bool shouldUpdateModels)
 {
 	int indexToDelete = -1;
 
@@ -286,13 +335,16 @@ void Block::removeBlockInstance(unsigned int blockInstanceId)
 	if (indexToDelete != -1)
 	{
 		blockInstances.erase(std::begin(blockInstances) + indexToDelete);
+		blockInstanceModels.erase(std::begin(blockInstanceModels) + indexToDelete);
+	}
+
+	if (shouldUpdateModels) {
+		updateBlockInstanceModels(true);
 	}
 }
 
 void Block::drawAll(TextureAtlas& textureAtlas, glm::mat4 viewProjection)
 {
-	updateBlockInstanceModels(true);
-
 	if (!blockInstances.empty())
 	{
 		glUseProgram(mesh.shaderProgram);

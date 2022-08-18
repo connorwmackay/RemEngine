@@ -88,6 +88,8 @@ void GameInstance::update(double deltaTime)
 	);
 
 	viewProjection = projection * view;
+
+	world.update(glm::vec3(0.0f, 0.0f, 0.0f));
 }
 
 void GameInstance::render()

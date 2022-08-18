@@ -24,17 +24,16 @@ protected:
 	std::vector<glm::mat4> blockInstanceModels;
 
 	GLuint lastModelBuffer;
-
-	// This gets called any time the block instances vector is updated
-	void updateBlockInstanceModels(bool shouldDeleteLastBuffer);
 public:
 	Block();
 	Block(TextureAtlas& textureAtlas, const BlockType& blockType);
 
+	void updateBlockInstanceModels(bool shouldDeleteLastBuffer);
+
 	void resetInstances();
-	void addBlockInstance(const BlockInstance& block);
-	void updateBlockInstance(const BlockInstance& block);
-	void removeBlockInstance(unsigned int blockInstanceId);
+	void addBlockInstance(const BlockInstance& block, bool shouldUpdateModels);
+	void updateBlockInstance(const BlockInstance& block, bool shouldUpdateModels);
+	void removeBlockInstance(unsigned int blockInstanceId, bool shouldUpdateModels);
 
 	// Draw all instances of this block
 	void drawAll(TextureAtlas& textureAtlas, glm::mat4 viewProjection);

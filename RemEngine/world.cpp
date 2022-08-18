@@ -7,7 +7,8 @@ World::World()
 
 World::World(bool useless)
 	: textureAtlas(TextureAtlas(false)), grass(textureAtlas, BlockType::Grass),
-	dirt(textureAtlas, BlockType::Dirt), stone(textureAtlas, BlockType::Stone)
+	dirt(textureAtlas, BlockType::Dirt), stone(textureAtlas, BlockType::Stone),
+	hasAddedNewStoneBlock(false)
 {
 	// Fill the block grid
 	for (int y = Y_BLOCKS-1; y >= 0; y--)
@@ -35,15 +36,11 @@ World::World(bool useless)
 	}
 
 	// Add the block instances
-	update();
+	create();
 }
 
-void World::update()
+void World::create()
 {
-	grass.resetInstances();
-	dirt.resetInstances();
-	stone.resetInstances();
-
 	// TODO: Only add block instances that have at least one adjacent air tile
 	for (int y = Y_BLOCKS - 1; y >= 0; y--)
 	{
@@ -84,19 +81,38 @@ void World::update()
 
 					if (blockType == BlockType::Grass)
 					{
-						grass.addBlockInstance(instance);
+						grass.addBlockInstance(instance, false);
 					}
 					else if (blockType == BlockType::Dirt)
 					{
-						dirt.addBlockInstance(instance);
+						dirt.addBlockInstance(instance, false);
 					}
 					else if (blockType == BlockType::Stone)
 					{
-						stone.addBlockInstance(instance);
+						stone.addBlockInstance(instance, false);
 					}
 				}
 			}
 		}
+	}
+
+	grass.updateBlockInstanceModels(true);
+	dirt.updateBlockInstanceModels(true);
+	stone.updateBlockInstanceModels(true);
+}
+
+void World::update(glm::vec3 cameraPos)
+{
+	if (!hasAddedNewStoneBlock)
+	{
+		stone.addBlockInstance(
+			createBlockInstance(
+				Transform(glm::vec3(0, 50, 0), glm::vec3(0.0f), glm::vec3(1.0f), true)
+			),
+			true
+		);
+
+		hasAddedNewStoneBlock = true;
 	}
 }
 
