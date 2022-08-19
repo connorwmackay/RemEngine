@@ -123,6 +123,7 @@ void World::update(glm::vec3 cameraPos)
 
 		stoneBlock.transform.translationSet(glm::vec3(0.0f, 51.0f, 0.0f));
 		stone.updateBlockInstance(stoneBlock, true);
+		//stone.removeBlockInstance(stoneBlock.id, true);
 		hasAddedNewStoneBlock = true;
 	}
 }

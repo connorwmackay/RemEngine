@@ -216,8 +216,6 @@ void Block::resetInstances()
 
 void Block::updateBlockInstanceModels(const UpdateType& updateType, int updateIndex)
 {
-	double startFuncTimer = glfwGetTime();
-
 	glBindBuffer(GL_ARRAY_BUFFER, lastModelBuffer);
 
 	switch(updateType)
@@ -245,7 +243,6 @@ void Block::updateBlockInstanceModels(const UpdateType& updateType, int updateIn
 			);
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			printf("==Add Element==: ");
 		}
 		break;
 	case UpdateType::AddMultipleElements:
@@ -271,7 +268,6 @@ void Block::updateBlockInstanceModels(const UpdateType& updateType, int updateIn
 			);
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			printf("==Add Multiple Element==: ");
 		}
 		break;
 	case UpdateType::UpdateElement:
@@ -284,46 +280,23 @@ void Block::updateBlockInstanceModels(const UpdateType& updateType, int updateIn
 			);
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			printf("==Update Element==: ");
 		}
 		break;
 	case UpdateType::RemoveElement:
 		{
-			GLint size;
-			glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+			GLsizei totalSize = blockInstanceModels.size() * sizeof(glm::mat4);
+			GLsizei removeSize = totalSize - ((updateIndex-1) * sizeof(glm::mat4));
 
-			if (blockInstanceModels.size() * sizeof(glm::mat4) > size)
-			{
-				glBufferData(
-					GL_ARRAY_BUFFER,
-					blockInstanceModels.size() * sizeof(glm::mat4) + (10000 * sizeof(glm::mat4)),
-					NULL,
-					GL_STREAM_DRAW
-				);
+			std::vector<glm::mat4> modelsToUpdate = std::vector<glm::mat4>(&blockInstanceModels.at(updateIndex - 1), &blockInstanceModels.at(blockInstanceModels.size() - 1));
 
-				glBufferSubData(
-					GL_ARRAY_BUFFER,
-					0,
-					blockInstanceModels.size() * sizeof(glm::mat4),
-					blockInstanceModels.data()
-				);
+			glBufferSubData(
+				GL_ARRAY_BUFFER,
+				(updateIndex-1) * sizeof(glm::mat4),
+				removeSize,
+				modelsToUpdate.data()
+			);
 
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
-			}
-			else
-			{
-
-				glBufferSubData(
-					GL_ARRAY_BUFFER,
-					0,
-					blockInstanceModels.size() * sizeof(glm::mat4),
-					blockInstanceModels.data()
-				);
-
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
-			}
-
-			printf("==Remove Element==: ");
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
 		break;
 	case UpdateType::InitElements:
@@ -354,13 +327,9 @@ void Block::updateBlockInstanceModels(const UpdateType& updateType, int updateIn
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
 
-			printf("==Init Elements==: ");
 		}
 		break;
 	}
-
-	double endFuncTimer = glfwGetTime();
-	printf("Update Model Matrices Function Time: %fms\n", (endFuncTimer - startFuncTimer) * 1000);
 }
 
 void Block::addBlockInstance(const BlockInstance& block, bool shouldUpdateModels)
@@ -416,7 +385,7 @@ void Block::removeBlockInstance(unsigned int blockInstanceId, bool shouldUpdateM
 	}
 
 	if (shouldUpdateModels) {
-		updateBlockInstanceModels(UpdateType::RemoveElement);
+		updateBlockInstanceModels(UpdateType::RemoveElement, indexToDelete);
 	}
 }
 
