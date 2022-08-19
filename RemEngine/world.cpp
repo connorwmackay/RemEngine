@@ -25,9 +25,6 @@ void World::updateWithRenderDistance(glm::vec3 cameraPos)
 
 	prevCameraPos = cameraPos;
 
-	printf("==========\n");
-	double startTimeTaken = glfwGetTime();
-
 	int startZ = (int) glm::floor(cameraPos.z - (RENDER_Z_DISTANCE / 2));
 	int startX = (int) glm::floor(cameraPos.x - (RENDER_X_DISTANCE / 2));
 
@@ -37,9 +34,6 @@ void World::updateWithRenderDistance(glm::vec3 cameraPos)
 	grass.removeOutsideBounds(startX, endX, startZ, endZ);
 	dirt.removeOutsideBounds(startX, endX, startZ, endZ);
 	stone.removeOutsideBounds(startX, endX, startZ, endZ);
-
-	double endTimeTaken = glfwGetTime();
-	printf("End Removing instances time: %fms\n", (endTimeTaken - startTimeTaken) * 1000);
 
 	int numBlocksAdded = 0;
 	for (int y = RENDER_Y_DISTANCE -1; y >= 0; y--)
@@ -66,8 +60,6 @@ void World::updateWithRenderDistance(glm::vec3 cameraPos)
 			}
 		}
 	}
-	endTimeTaken = glfwGetTime();
-	printf("End Adding instances time: %fms\n", (endTimeTaken - startTimeTaken) * 1000);
 
 	printf("Num Blocks Added: %d\n", numBlocksAdded);
 
@@ -85,9 +77,6 @@ void World::updateWithRenderDistance(glm::vec3 cameraPos)
 	if (!stone.getBlockModels().empty()) {
 		stone.updateBlockInstanceModels(UpdateType::AddMultipleElements);
 	}
-	
-	endTimeTaken = glfwGetTime();
-	printf("Update world time time: %fms\n", (endTimeTaken - startTimeTaken) * 1000);
 
 	prevStartX = startX;
 	prevEndX = endX;
