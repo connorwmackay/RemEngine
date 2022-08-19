@@ -3,17 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
 
-BlockInstance createBlockInstance(const Transform& transform)
-{
-	static unsigned int latestID = 0;
-
-	BlockInstance blockInstance = {
-		latestID++,
-		transform,
-	};
-
-	return blockInstance;
-}
+#include "world_matrices.h"
 
 Block::Block()
 {
@@ -21,8 +11,7 @@ Block::Block()
 }
 
 Block::Block(TextureAtlas& textureAtlas, const BlockType& blockType)
-	: type(blockType), mesh({}),blockInstances(std::vector<BlockInstance>()),
-	blockInstanceModels(std::vector<glm::mat4>())
+	: type(blockType), mesh({}), blockModels(std::vector<glm::vec3>())
 {
 	std::vector<GLfloat> blockVerts = std::vector<GLfloat>();
 	blockVerts.assign({
@@ -208,10 +197,20 @@ Block::Block(TextureAtlas& textureAtlas, const BlockType& blockType)
 	updateBlockInstanceModels(UpdateType::InitElements);
 }
 
-void Block::resetInstances()
+int Block::findBlockIndex(const glm::vec3& pos)
 {
-	blockInstances = std::vector<BlockInstance>();
-	blockInstanceModels = std::vector<glm::mat4>();
+	int index = -1;
+
+	for (int i=0; i < blockModels.size(); i++)
+	{
+		if (blockModels.at(i) == pos)
+		{
+			index = i;
+			break;
+		}
+	}
+
+	return index;
 }
 
 void Block::updateBlockInstanceModels(const UpdateType& updateType, int updateIndex)
@@ -225,11 +224,11 @@ void Block::updateBlockInstanceModels(const UpdateType& updateType, int updateIn
 			GLint size;
 			glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 
-			if (blockInstanceModels.size() * sizeof(glm::mat4) > size)
+			if (blockModels.size() * sizeof(glm::vec3) > size)
 			{
 				glBufferData(
 					GL_ARRAY_BUFFER,
-					blockInstanceModels.size() * sizeof(glm::mat4) + (10000 * sizeof(glm::mat4)),
+					blockModels.size() * sizeof(glm::vec3) + (10000 * sizeof(glm::vec3)),
 					NULL,
 					GL_STREAM_DRAW
 				);
@@ -237,9 +236,9 @@ void Block::updateBlockInstanceModels(const UpdateType& updateType, int updateIn
 
 			glBufferSubData(
 				GL_ARRAY_BUFFER,
-				(blockInstanceModels.size() - 1) * sizeof(glm::mat4),
-				sizeof(glm::mat4),
-				&blockInstanceModels.at(blockInstanceModels.size() - 1)
+				(blockModels.size() - 1) * sizeof(glm::vec3),
+				sizeof(glm::vec3),
+				&blockModels.at(blockModels.size() - 1)
 			);
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -250,11 +249,11 @@ void Block::updateBlockInstanceModels(const UpdateType& updateType, int updateIn
 			GLint size;
 			glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 
-			if (blockInstanceModels.size() * sizeof(glm::mat4) > size)
+			if (blockModels.size() * sizeof(glm::vec3) > size)
 			{
 				glBufferData(
 					GL_ARRAY_BUFFER,
-					blockInstanceModels.size() * sizeof(glm::mat4) + (10000 * sizeof(glm::mat4)),
+					blockModels.size() * sizeof(glm::vec3) + (10000 * sizeof(glm::vec3)),
 					NULL,
 					GL_STREAM_DRAW
 				);
@@ -263,8 +262,8 @@ void Block::updateBlockInstanceModels(const UpdateType& updateType, int updateIn
 			glBufferSubData(
 				GL_ARRAY_BUFFER,
 				0,
-				blockInstanceModels.size() * sizeof(glm::mat4),
-				blockInstanceModels.data()
+				blockModels.size() * sizeof(glm::vec3),
+				blockModels.data()
 			);
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -274,9 +273,9 @@ void Block::updateBlockInstanceModels(const UpdateType& updateType, int updateIn
 		{
 			glBufferSubData(
 				GL_ARRAY_BUFFER,
-				updateIndex * sizeof(glm::mat4),
-				sizeof(glm::mat4),
-				&blockInstanceModels.at(updateIndex)
+				updateIndex * sizeof(glm::vec3),
+				sizeof(glm::vec3),
+				&blockModels.at(updateIndex)
 			);
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -284,16 +283,14 @@ void Block::updateBlockInstanceModels(const UpdateType& updateType, int updateIn
 		break;
 	case UpdateType::RemoveElement:
 		{
-			GLsizei totalSize = blockInstanceModels.size() * sizeof(glm::mat4);
-			GLsizei removeSize = totalSize - ((updateIndex-1) * sizeof(glm::mat4));
-
-			std::vector<glm::mat4> modelsToUpdate = std::vector<glm::mat4>(&blockInstanceModels.at(updateIndex - 1), &blockInstanceModels.at(blockInstanceModels.size() - 1));
+			GLsizei totalSize = blockModels.size() * sizeof(glm::vec3);
+			GLsizei removeSize = totalSize - ((updateIndex) * sizeof(glm::vec3));
 
 			glBufferSubData(
 				GL_ARRAY_BUFFER,
-				(updateIndex-1) * sizeof(glm::mat4),
+				(updateIndex) * sizeof(glm::vec3),
 				removeSize,
-				modelsToUpdate.data()
+				blockModels.data() + updateIndex
 			);
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -303,27 +300,15 @@ void Block::updateBlockInstanceModels(const UpdateType& updateType, int updateIn
 		{
 			glBufferData(
 				GL_ARRAY_BUFFER,
-				20000 * sizeof(glm::mat4),
+				20000 * sizeof(glm::vec3),
 				NULL,
 				GL_STREAM_DRAW
 			);
 
-			size_t vec4Size = sizeof(glm::vec4);
-
 			glBindVertexArray(mesh.vao);
 			glEnableVertexAttribArray(2);
-			glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)0);
-			glEnableVertexAttribArray(3);
-			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)vec4Size);
-			glEnableVertexAttribArray(4);
-			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(2 * vec4Size));
-			glEnableVertexAttribArray(5);
-			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(3 * vec4Size));
-
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
 			glVertexAttribDivisor(2, 1);
-			glVertexAttribDivisor(3, 1);
-			glVertexAttribDivisor(4, 1);
-			glVertexAttribDivisor(5, 1);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
 
@@ -332,10 +317,9 @@ void Block::updateBlockInstanceModels(const UpdateType& updateType, int updateIn
 	}
 }
 
-void Block::addBlockInstance(const BlockInstance& block, bool shouldUpdateModels)
+void Block::placeBlock(const glm::vec3& pos, bool shouldUpdateModels)
 {
-	blockInstances.push_back(block);
-	blockInstanceModels.push_back(block.transform.modelMatrixGet());
+	blockModels.push_back(pos);
 
 	if (shouldUpdateModels)
 	{
@@ -343,55 +327,35 @@ void Block::addBlockInstance(const BlockInstance& block, bool shouldUpdateModels
 	}
 }
 
-// TODO: Make this work properly
-void Block::updateBlockInstance(const BlockInstance& block, bool shouldUpdateModels)
+void Block::updateBlock(const glm::vec3& pos, bool shouldUpdateModels)
 {
-	int updateIndex = -1;
+	int updateIndex = findBlockIndex(pos);
 
-	for (int i = 0; i < blockInstances.size(); i++)
-	{
-		BlockInstance& blockInstance = blockInstances.at(i);
+	if (updateIndex != -1) {
+		blockModels.at(updateIndex) = pos;
 
-		if (blockInstance.id == block.id) {
-			blockInstance = block;
-			blockInstanceModels.at(i) = block.transform.modelMatrixGet();
-			updateIndex = i;
-			break;
+		if (shouldUpdateModels) {
+			updateBlockInstanceModels(UpdateType::UpdateElement, updateIndex);
 		}
-	}
-
-	if (shouldUpdateModels) {
-		updateBlockInstanceModels(UpdateType::UpdateElement, updateIndex);
 	}
 }
 
-void Block::removeBlockInstance(unsigned int blockInstanceId, bool shouldUpdateModels)
+void Block::deleteBlock(const glm::vec3& pos, bool shouldUpdateModels)
 {
-	int indexToDelete = -1;
+	int indexToDelete = findBlockIndex(pos);
 
-	for (int i=0; i < blockInstances.size(); i++)
-	{
-		if (blockInstances[i].id == blockInstanceId)
-		{
-			indexToDelete = i;
-			break;
+	if (indexToDelete != -1) {
+		blockModels.erase(std::begin(blockModels) + indexToDelete);
+
+		if (shouldUpdateModels) {
+			updateBlockInstanceModels(UpdateType::RemoveElement, indexToDelete);
 		}
-	}
-
-	if (indexToDelete != -1)
-	{
-		blockInstances.erase(std::begin(blockInstances) + indexToDelete);
-		blockInstanceModels.erase(std::begin(blockInstanceModels) + indexToDelete);
-	}
-
-	if (shouldUpdateModels) {
-		updateBlockInstanceModels(UpdateType::RemoveElement, indexToDelete);
 	}
 }
 
 void Block::drawAll(TextureAtlas& textureAtlas, glm::mat4 viewProjection)
 {
-	if (!blockInstances.empty())
+	if (!blockModels.empty())
 	{
 		glUseProgram(mesh.shaderProgram);
 		glBindTexture(GL_TEXTURE_2D, textureAtlas.getTexture());
@@ -400,6 +364,29 @@ void Block::drawAll(TextureAtlas& textureAtlas, glm::mat4 viewProjection)
 		GLint vpLoc = glGetUniformLocation(mesh.shaderProgram, "viewProjection");
 		glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(viewProjection));
 
-		glDrawElementsInstanced(GL_TRIANGLES, mesh.numVertices, GL_UNSIGNED_INT, 0, blockInstanceModels.size());
+		glDrawElementsInstanced(GL_TRIANGLES, mesh.numVertices, GL_UNSIGNED_INT, 0, blockModels.size());
 	}
+}
+
+std::vector<glm::vec3>& Block::getBlockModels()
+{
+	return blockModels;
+}
+
+void Block::removeOutsideBounds(int startX, int endX, int startZ, int endZ)
+{
+	int numRemoved = 0;
+	for (int i=0; i < blockModels.size(); i++)
+	{
+		glm::vec3& pos = blockModels.at(i);
+
+		if (pos.z < startZ || pos.z > endZ
+			|| pos.x < startX || pos.x > endX)
+		{
+			blockModels.erase(std::begin(blockModels) + i);
+			numRemoved++;
+		}
+	}
+
+	printf("Num Blocks Removed: %d\n", numRemoved);
 }

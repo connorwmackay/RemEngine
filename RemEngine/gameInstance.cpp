@@ -32,8 +32,9 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 
 	//  GLFW settings
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+#ifdef DEBUG
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-
+#endif
 	// Window creation
 	window = glfwCreateWindow(width, height, title, nullptr, nullptr);
 	glfwMakeContextCurrent(window);
@@ -45,8 +46,11 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 
 	// OpenGL Settings
 	glEnable(GL_DEPTH_TEST);
+
+#ifdef DEBUG
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
+#endif
 
 	// Perform an initial clear and buffer swap
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -90,6 +94,7 @@ void GameInstance::update(double deltaTime)
 	viewProjection = projection * view;
 
 	world.update(glm::vec3(0.0f, 0.0f, 0.0f));
+	world.updateWithRenderDistance(spectator.getTransform().translationGet());
 }
 
 void GameInstance::render()

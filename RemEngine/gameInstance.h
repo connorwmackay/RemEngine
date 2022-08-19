@@ -60,4 +60,3 @@ public:
 
 	glm::mat4 getViewProjection() const;
 };
-
