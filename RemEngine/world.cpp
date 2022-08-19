@@ -96,22 +96,33 @@ void World::create()
 		}
 	}
 
-	grass.updateBlockInstanceModels(true);
-	dirt.updateBlockInstanceModels(true);
-	stone.updateBlockInstanceModels(true);
+	grass.updateBlockInstanceModels(UpdateType::AddMultipleElements);
+	dirt.updateBlockInstanceModels(UpdateType::AddMultipleElements);
+	stone.updateBlockInstanceModels(UpdateType::AddMultipleElements);
 }
 
 void World::update(glm::vec3 cameraPos)
 {
 	if (!hasAddedNewStoneBlock)
 	{
+		BlockInstance stoneBlock = createBlockInstance(
+			Transform(glm::vec3(0, 50, 0), glm::vec3(0.0f), glm::vec3(1.0f), true)
+		);
+
 		stone.addBlockInstance(
+			stoneBlock,
+			true
+		);
+
+		dirt.addBlockInstance(
 			createBlockInstance(
-				Transform(glm::vec3(0, 50, 0), glm::vec3(0.0f), glm::vec3(1.0f), true)
+				Transform(glm::vec3(1, 50, 0), glm::vec3(0.0f), glm::vec3(1.0f), true)
 			),
 			true
 		);
 
+		stoneBlock.transform.translationSet(glm::vec3(0.0f, 51.0f, 0.0f));
+		stone.updateBlockInstance(stoneBlock, true);
 		hasAddedNewStoneBlock = true;
 	}
 }

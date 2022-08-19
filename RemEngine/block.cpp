@@ -205,7 +205,7 @@ Block::Block(TextureAtlas& textureAtlas, const BlockType& blockType)
 	GLuint modelsBuf;
 	glGenBuffers(1, &modelsBuf);
 	lastModelBuffer = modelsBuf;
-	updateBlockInstanceModels(true);
+	updateBlockInstanceModels(UpdateType::InitElements);
 }
 
 void Block::resetInstances()
@@ -214,75 +214,149 @@ void Block::resetInstances()
 	blockInstanceModels = std::vector<glm::mat4>();
 }
 
-void Block::updateBlockInstanceModels(bool shouldDeleteLastBuffer)
+void Block::updateBlockInstanceModels(const UpdateType& updateType, int updateIndex)
 {
 	double startFuncTimer = glfwGetTime();
-	if (blockInstanceModels.size() > 0) {
-		glBindBuffer(GL_ARRAY_BUFFER, lastModelBuffer);
 
-		GLint size;
-		glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	glBindBuffer(GL_ARRAY_BUFFER, lastModelBuffer);
 
-		if (blockInstanceModels.size() * sizeof(glm::mat4) > size)
+	switch(updateType)
+	{
+	case UpdateType::AddElement:
+		{
+			GLint size;
+			glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+
+			if (blockInstanceModels.size() * sizeof(glm::mat4) > size)
+			{
+				glBufferData(
+					GL_ARRAY_BUFFER,
+					blockInstanceModels.size() * sizeof(glm::mat4) + (10000 * sizeof(glm::mat4)),
+					NULL,
+					GL_STREAM_DRAW
+				);
+			}
+
+			glBufferSubData(
+				GL_ARRAY_BUFFER,
+				(blockInstanceModels.size() - 1) * sizeof(glm::mat4),
+				sizeof(glm::mat4),
+				&blockInstanceModels.at(blockInstanceModels.size() - 1)
+			);
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			printf("==Add Element==: ");
+		}
+		break;
+	case UpdateType::AddMultipleElements:
+		{
+			GLint size;
+			glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+
+			if (blockInstanceModels.size() * sizeof(glm::mat4) > size)
+			{
+				glBufferData(
+					GL_ARRAY_BUFFER,
+					blockInstanceModels.size() * sizeof(glm::mat4) + (10000 * sizeof(glm::mat4)),
+					NULL,
+					GL_STREAM_DRAW
+				);
+			}
+
+			glBufferSubData(
+				GL_ARRAY_BUFFER,
+				0,
+				blockInstanceModels.size() * sizeof(glm::mat4),
+				blockInstanceModels.data()
+			);
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			printf("==Add Multiple Element==: ");
+		}
+		break;
+	case UpdateType::UpdateElement:
+		{
+			glBufferSubData(
+				GL_ARRAY_BUFFER,
+				updateIndex * sizeof(glm::mat4),
+				sizeof(glm::mat4),
+				&blockInstanceModels.at(updateIndex)
+			);
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			printf("==Update Element==: ");
+		}
+		break;
+	case UpdateType::RemoveElement:
+		{
+			GLint size;
+			glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+
+			if (blockInstanceModels.size() * sizeof(glm::mat4) > size)
+			{
+				glBufferData(
+					GL_ARRAY_BUFFER,
+					blockInstanceModels.size() * sizeof(glm::mat4) + (10000 * sizeof(glm::mat4)),
+					NULL,
+					GL_STREAM_DRAW
+				);
+
+				glBufferSubData(
+					GL_ARRAY_BUFFER,
+					0,
+					blockInstanceModels.size() * sizeof(glm::mat4),
+					blockInstanceModels.data()
+				);
+
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
+			}
+			else
+			{
+
+				glBufferSubData(
+					GL_ARRAY_BUFFER,
+					0,
+					blockInstanceModels.size() * sizeof(glm::mat4),
+					blockInstanceModels.data()
+				);
+
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
+			}
+
+			printf("==Remove Element==: ");
+		}
+		break;
+	case UpdateType::InitElements:
 		{
 			glBufferData(
 				GL_ARRAY_BUFFER,
-				blockInstanceModels.size() * sizeof(glm::mat4) + (10000 * sizeof(glm::mat4)),
+				20000 * sizeof(glm::mat4),
 				NULL,
 				GL_STREAM_DRAW
 			);
 
-			glBufferSubData(
-				GL_ARRAY_BUFFER,
-				0,
-				blockInstanceModels.size() * sizeof(glm::mat4),
-				blockInstanceModels.data()
-			);
+			size_t vec4Size = sizeof(glm::vec4);
 
+			glBindVertexArray(mesh.vao);
+			glEnableVertexAttribArray(2);
+			glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)0);
+			glEnableVertexAttribArray(3);
+			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)vec4Size);
+			glEnableVertexAttribArray(4);
+			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(2 * vec4Size));
+			glEnableVertexAttribArray(5);
+			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(3 * vec4Size));
+
+			glVertexAttribDivisor(2, 1);
+			glVertexAttribDivisor(3, 1);
+			glVertexAttribDivisor(4, 1);
+			glVertexAttribDivisor(5, 1);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindVertexArray(0);
+
+			printf("==Init Elements==: ");
 		}
-		else
-		{
-
-			glBufferSubData(
-				GL_ARRAY_BUFFER,
-				0,
-				blockInstanceModels.size() * sizeof(glm::mat4),
-				blockInstanceModels.data()
-			);
-
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		}
-	}
-	else
-	{
-		printf("Yes\n");
-		glBindBuffer(GL_ARRAY_BUFFER, lastModelBuffer);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			20000 * sizeof(glm::mat4), // TODO: Set as the maximum number of blocks it may have to hold?
-			NULL,
-			GL_STREAM_DRAW
-		);
-
-		size_t vec4Size = sizeof(glm::vec4);
-
-		glBindVertexArray(mesh.vao);
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)0);
-		glEnableVertexAttribArray(3);
-		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)vec4Size);
-		glEnableVertexAttribArray(4);
-		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(2 * vec4Size));
-		glEnableVertexAttribArray(5);
-		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(3 * vec4Size));
-
-		glVertexAttribDivisor(2, 1);
-		glVertexAttribDivisor(3, 1);
-		glVertexAttribDivisor(4, 1);
-		glVertexAttribDivisor(5, 1);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
+		break;
 	}
 
 	double endFuncTimer = glfwGetTime();
@@ -296,13 +370,15 @@ void Block::addBlockInstance(const BlockInstance& block, bool shouldUpdateModels
 
 	if (shouldUpdateModels)
 	{
-		updateBlockInstanceModels(true);
+		updateBlockInstanceModels(UpdateType::AddElement);
 	}
 }
 
 // TODO: Make this work properly
 void Block::updateBlockInstance(const BlockInstance& block, bool shouldUpdateModels)
 {
+	int updateIndex = -1;
+
 	for (int i = 0; i < blockInstances.size(); i++)
 	{
 		BlockInstance& blockInstance = blockInstances.at(i);
@@ -310,12 +386,13 @@ void Block::updateBlockInstance(const BlockInstance& block, bool shouldUpdateMod
 		if (blockInstance.id == block.id) {
 			blockInstance = block;
 			blockInstanceModels.at(i) = block.transform.modelMatrixGet();
+			updateIndex = i;
 			break;
 		}
 	}
 
 	if (shouldUpdateModels) {
-		updateBlockInstanceModels(true);
+		updateBlockInstanceModels(UpdateType::UpdateElement, updateIndex);
 	}
 }
 
@@ -339,7 +416,7 @@ void Block::removeBlockInstance(unsigned int blockInstanceId, bool shouldUpdateM
 	}
 
 	if (shouldUpdateModels) {
-		updateBlockInstanceModels(true);
+		updateBlockInstanceModels(UpdateType::RemoveElement);
 	}
 }
 

@@ -85,6 +85,8 @@ glm::mat4 Transform::modelMatrixGet() const
 
 void Transform::updateModelMatrix()
 {
+	model = glm::mat4(1.0f);
+
 	if (isUsingGlobalTranslation) {
 		model = glm::translate(model, translation);
 		model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
