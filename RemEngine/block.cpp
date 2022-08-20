@@ -55,22 +55,22 @@ Block::Block(TextureAtlas& textureAtlas, const BlockType& blockType)
 	std::vector<GLint> blockIndices = std::vector<GLint>();
 	blockIndices.assign({
 		// Front Face
-		0, 1, 3, 0, 2, 3,
+		3, 2, 0, 0, 1, 3,
 
 		// Back Face
-		4, 5, 7, 4, 6, 7,
+		7, 6, 4, 4, 5, 7,
 
 		// Right Face
-		8, 11, 10, 9, 8, 11,
+		8, 9, 11, 11, 10, 8,
 
 		// Left Face
-		13, 14, 15, 12, 13, 14,
+		12, 15, 13, 15, 12, 14,
 
 		// Top Face
 		19, 16, 17, 18, 16, 19,
 
 		// Bottom Face
-		21, 22, 23, 20, 21, 22
+		23, 20, 22, 20, 23, 21
 	});
 
 	// Get the texture coordinates...
