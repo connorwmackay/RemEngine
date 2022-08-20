@@ -55,7 +55,7 @@ Block::Block(TextureAtlas& textureAtlas, const BlockType& blockType)
 	std::vector<GLint> blockIndices = std::vector<GLint>();
 	blockIndices.assign({
 		// Front Face
-		3, 2, 0, 0, 1, 3,
+		3, 0, 2, 0, 3, 1,
 
 		// Back Face
 		7, 6, 4, 4, 5, 7,

@@ -43,6 +43,7 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 	assert(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress));
 
 	// OpenGL Settings
+	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CW);
