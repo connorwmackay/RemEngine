@@ -2,6 +2,11 @@
 
 #include <glm/ext/matrix_transform.hpp>
 
+Transform::Transform()
+{
+	
+}
+
 Transform::Transform(glm::vec3 translation, glm::vec3 rotation, glm::vec3 scale, bool useGlobalTranslation)
 	: translation(translation), rotation(rotation), scale(scale), model(glm::mat4(1.0f)),
 		isUsingGlobalTranslation(useGlobalTranslation)

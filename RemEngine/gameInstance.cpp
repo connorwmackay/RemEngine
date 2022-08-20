@@ -25,15 +25,16 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 	textureAtlas(TextureAtlas()),
 	lastKnownWindowSize(glm::vec2(width, height)),
 	frameTimeElapsed(0.0),
-	spectator(12.0f, 0.2f, Transform(glm::vec3(0.0f, 2.0f, -10.0f), glm::vec3(45.0f, 0.0f, 0.0f), glm::vec3(1.0f), true)),
+	spectator(12.0f, 0.2f, Transform(glm::vec3(0.0f, 22.0f, -10.0f), glm::vec3(45.0f, 0.0f, 0.0f), glm::vec3(1.0f), true)),
 	world(World())
 {
 	assert(glfwInit());
 
 	//  GLFW settings
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+#ifdef DEBUG
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-
+#endif
 	// Window creation
 	window = glfwCreateWindow(width, height, title, nullptr, nullptr);
 	glfwMakeContextCurrent(window);
@@ -45,8 +46,11 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 
 	// OpenGL Settings
 	glEnable(GL_DEPTH_TEST);
+
+#ifdef DEBUG
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
+#endif
 
 	// Perform an initial clear and buffer swap
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -90,6 +94,7 @@ void GameInstance::update(double deltaTime)
 	viewProjection = projection * view;
 
 	world.update(glm::vec3(0.0f, 0.0f, 0.0f));
+	world.updateWithRenderDistance(spectator.getTransform().translationGet());
 }
 
 void GameInstance::render()

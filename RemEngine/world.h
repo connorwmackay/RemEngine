@@ -2,30 +2,30 @@
 #include "block.h"
 #include <boost/multi_array.hpp>
 
-#define Y_BLOCKS 40
-#define Z_BLOCKS 192
-#define X_BLOCKS 192
-
-#define RENDER_X_DISTANCE 192
-#define RENDER_Z_DISTANCE 192
+#define RENDER_Y_DISTANCE 40
+#define RENDER_X_DISTANCE 100
+#define RENDER_Z_DISTANCE 100
 
 class World
 {
 protected:
-	boost::multi_array<BlockType, 3> blockGrid { boost::extents[Y_BLOCKS][Z_BLOCKS][X_BLOCKS] };
-
 	TextureAtlas textureAtlas;
 
 	Block grass;
 	Block dirt;
 	Block stone;
 
+	int prevStartX, prevEndX;
+	int prevStartZ, prevEndZ;
+
+	glm::vec3 prevCameraPos;
+
 	bool hasAddedNewStoneBlock;
 public:
 	World();
 	World(bool useless);
 
-	void create();
+	void updateWithRenderDistance(glm::vec3 cameraPos);
 
 	// Update in line with the player position
 	void update(glm::vec3 cameraPos);

@@ -1,15 +1,12 @@
 #pragma once
+#include <boost/array.hpp>
 #include <glad/glad.h>
 #include "mesh.h"
 #include "transform.h"
 
-struct BlockInstance
-{
-	unsigned int id;
-	Transform transform;
-};
-
-BlockInstance createBlockInstance(const Transform& transform);
+#define RENDER_Y_DISTANCE 40
+#define RENDER_X_DISTANCE 100
+#define RENDER_Z_DISTANCE 100
 
 enum class UpdateType
 {
@@ -29,10 +26,13 @@ class Block
 protected:
 	BlockType type;
 	Mesh mesh;
-	std::vector<BlockInstance> blockInstances;
-	std::vector<glm::mat4> blockInstanceModels;
+
+	std::vector<glm::vec3> blockModels;
 
 	GLuint lastModelBuffer;
+
+	// Returns -1 if the block doesn't exist
+	int findBlockIndex(const glm::vec3& pos);
 public:
 	Block();
 	Block(TextureAtlas& textureAtlas, const BlockType& blockType);
@@ -40,11 +40,14 @@ public:
 	// Update index is only used if updating an element
 	void updateBlockInstanceModels(const UpdateType& updateType, int updateIndex = -1);
 
-	void resetInstances();
-	void addBlockInstance(const BlockInstance& block, bool shouldUpdateModels);
-	void updateBlockInstance(const BlockInstance& block, bool shouldUpdateModels);
-	void removeBlockInstance(unsigned int blockInstanceId, bool shouldUpdateModels);
+	void placeBlock(const glm::vec3& pos, bool shouldUpdateModels);
+	void updateBlock(const glm::vec3& pos, bool shouldUpdateModels);
+	void deleteBlock(const glm::vec3& pos, bool shouldUpdateModels);
 
+	std::vector<glm::vec3>& getBlockModels();
+
+	void removeOutsideBounds(int startX, int endX, int startZ, int endZ);
+	
 	// Draw all instances of this block
 	void drawAll(TextureAtlas& textureAtlas, glm::mat4 viewProjection);
 };

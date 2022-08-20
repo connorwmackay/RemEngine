@@ -136,6 +136,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackReserveSize>4194304 </StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

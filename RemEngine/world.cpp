@@ -1,5 +1,7 @@
 #include "world.h"
 
+#include <GLFW/glfw3.h>
+
 World::World()
 {
 	
@@ -8,122 +10,89 @@ World::World()
 World::World(bool useless)
 	: textureAtlas(TextureAtlas(false)), grass(textureAtlas, BlockType::Grass),
 	dirt(textureAtlas, BlockType::Dirt), stone(textureAtlas, BlockType::Stone),
-	hasAddedNewStoneBlock(false)
+	hasAddedNewStoneBlock(false), prevCameraPos(glm::vec3(-10.0f, -10.0f, -10.0)),
+	prevStartX(0), prevEndX(0), prevStartZ(0), prevEndZ(0)
 {
-	// Fill the block grid
-	for (int y = Y_BLOCKS-1; y >= 0; y--)
-	{
-		for (int z=0; z < Z_BLOCKS; z++)
-		{
-			for (int x=0; x < X_BLOCKS; x++)
-			{
-				if (y > Y_BLOCKS / 2) {
-					blockGrid[y][z][x] = BlockType::Air;
-				}
-				else if (y == (Y_BLOCKS / 2)) {
-					blockGrid[y][z][x] = BlockType::Grass;
-				}
-				else if (y < (Y_BLOCKS /2) && y > (Y_BLOCKS / 2)-6)
-				{
-					blockGrid[y][z][x] = BlockType::Dirt;
-				}
-				else
-				{
-					blockGrid[y][z][x] = BlockType::Stone;
-				}
-			}
-		}
-	}
 
-	// Add the block instances
-	create();
 }
 
-void World::create()
+void World::updateWithRenderDistance(glm::vec3 cameraPos)
 {
-	// TODO: Only add block instances that have at least one adjacent air tile
-	for (int y = Y_BLOCKS - 1; y >= 0; y--)
+	if (glm::floor(cameraPos) == glm::floor(prevCameraPos))
 	{
-		for (int z = 0; z < Z_BLOCKS; z++)
-		{
-			for (int x = 0; x < X_BLOCKS; x++)
-			{
-				BlockType blockType = blockGrid[y][z][x];
+		return;
+	}
 
-				bool isAirBlockAdjacent = false;
-				for (int adjY = y + 1; adjY >= y - 1; adjY--)
+	prevCameraPos = cameraPos;
+
+	int startZ = (int) glm::floor(cameraPos.z - (RENDER_Z_DISTANCE / 2));
+	int startX = (int) glm::floor(cameraPos.x - (RENDER_X_DISTANCE / 2));
+
+	int endZ = (int) glm::floor(cameraPos.z + (RENDER_Z_DISTANCE / 2));
+	int endX = (int) glm::floor(cameraPos.x + (RENDER_X_DISTANCE / 2));
+
+	grass.removeOutsideBounds(startX, endX, startZ, endZ);
+	dirt.removeOutsideBounds(startX, endX, startZ, endZ);
+	stone.removeOutsideBounds(startX, endX, startZ, endZ);
+
+	int numBlocksAdded = 0;
+	for (int y = RENDER_Y_DISTANCE -1; y >= 0; y--)
+	{
+		for (int z = startZ; z <= endZ; z++)
+		{
+			for (int x = startX; x <= endX; x++)
+			{
+				bool shouldAddBlockInstance = false;
+
+				if (x > prevEndX || z > prevEndZ || x < prevStartX || z < prevStartZ)
 				{
-					for (int adjZ = z - 1; adjZ <= z + 1; adjZ++)
-					{
-						for (int adjX = x - 1; adjX <= x + 1; adjX++)
-						{
-							if (adjY > 0 && adjY < Y_BLOCKS-1 &&
-								adjZ > 0 && adjZ < Z_BLOCKS-1 &&
-								adjX > 0 && adjX < X_BLOCKS-1)
-							{
-								if (blockGrid[adjY][adjZ][adjX] == BlockType::Air)
-								{
-									isAirBlockAdjacent = true;
-									break;
-								}
-							}
-							else if (adjX == 0 || adjZ == 0 || y == 0 || adjX == X_BLOCKS-1 || adjZ == Z_BLOCKS-1)
-							{
-								isAirBlockAdjacent = true;
-							}
-						}
-					}
+					shouldAddBlockInstance = true;
 				}
 
-				if (blockType != BlockType::Air && isAirBlockAdjacent) {
-					Transform transform = Transform(glm::vec3(x, y, z), glm::vec3(0.0f), glm::vec3(1.0f), true);
-					BlockInstance instance = createBlockInstance(transform);
-
-					if (blockType == BlockType::Grass)
+				if (shouldAddBlockInstance)
+				{
+					if (y == (40 - 1) / 2)
 					{
-						grass.addBlockInstance(instance, false);
-					}
-					else if (blockType == BlockType::Dirt)
-					{
-						dirt.addBlockInstance(instance, false);
-					}
-					else if (blockType == BlockType::Stone)
-					{
-						stone.addBlockInstance(instance, false);
+						numBlocksAdded++;
+						grass.placeBlock(glm::vec3(x, y, z), false);
 					}
 				}
 			}
 		}
 	}
 
-	grass.updateBlockInstanceModels(UpdateType::AddMultipleElements);
-	dirt.updateBlockInstanceModels(UpdateType::AddMultipleElements);
-	stone.updateBlockInstanceModels(UpdateType::AddMultipleElements);
+	printf("Num Blocks Added: %d\n", numBlocksAdded);
+
+	/*
+	 * Update the Matrix Models
+	 */
+	if (!grass.getBlockModels().empty()) {
+		grass.updateBlockInstanceModels(UpdateType::AddMultipleElements);
+	}
+
+	if (!dirt.getBlockModels().empty()) {
+		dirt.updateBlockInstanceModels(UpdateType::AddMultipleElements);
+	}
+
+	if (!stone.getBlockModels().empty()) {
+		stone.updateBlockInstanceModels(UpdateType::AddMultipleElements);
+	}
+
+	prevStartX = startX;
+	prevEndX = endX;
+	prevStartZ = startZ;
+	prevEndZ = endZ;
 }
 
 void World::update(glm::vec3 cameraPos)
 {
 	if (!hasAddedNewStoneBlock)
 	{
-		BlockInstance stoneBlock = createBlockInstance(
-			Transform(glm::vec3(0, 50, 0), glm::vec3(0.0f), glm::vec3(1.0f), true)
-		);
-
-		stone.addBlockInstance(
-			stoneBlock,
+		stone.placeBlock(
+			glm::vec3(0, 50, 0),
 			true
 		);
 
-		dirt.addBlockInstance(
-			createBlockInstance(
-				Transform(glm::vec3(1, 50, 0), glm::vec3(0.0f), glm::vec3(1.0f), true)
-			),
-			true
-		);
-
-		stoneBlock.transform.translationSet(glm::vec3(0.0f, 51.0f, 0.0f));
-		stone.updateBlockInstance(stoneBlock, true);
-		//stone.removeBlockInstance(stoneBlock.id, true);
 		hasAddedNewStoneBlock = true;
 	}
 }
