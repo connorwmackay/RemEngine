@@ -7,99 +7,30 @@ World::World()
 	
 }
 
-World::World(bool useless)
-	: textureAtlas(TextureAtlas(false)), grass(textureAtlas, BlockType::Grass),
-	dirt(textureAtlas, BlockType::Dirt), stone(textureAtlas, BlockType::Stone),
-	hasAddedNewStoneBlock(false), prevCameraPos(glm::vec3(-10.0f, -10.0f, -10.0)),
-	prevStartX(0), prevEndX(0), prevStartZ(0), prevEndZ(0)
+World::World(TextureAtlas& textureAtlas)
+	: textureAtlas(textureAtlas),
+	prevCameraPos(glm::vec3(.0f, 1, 0.0)),
+	chunks(std::vector<Chunk>())
 {
-
-}
-
-void World::updateWithRenderDistance(glm::vec3 cameraPos)
-{
-	if (glm::floor(cameraPos) == glm::floor(prevCameraPos))
-	{
-		return;
-	}
-
-	prevCameraPos = cameraPos;
-
-	int startZ = (int) glm::floor(cameraPos.z - (RENDER_Z_DISTANCE / 2));
-	int startX = (int) glm::floor(cameraPos.x - (RENDER_X_DISTANCE / 2));
-
-	int endZ = (int) glm::floor(cameraPos.z + (RENDER_Z_DISTANCE / 2));
-	int endX = (int) glm::floor(cameraPos.x + (RENDER_X_DISTANCE / 2));
-
-	grass.removeOutsideBounds(startX, endX, startZ, endZ);
-	dirt.removeOutsideBounds(startX, endX, startZ, endZ);
-	stone.removeOutsideBounds(startX, endX, startZ, endZ);
-
-	int numBlocksAdded = 0;
-	for (int y = RENDER_Y_DISTANCE -1; y >= 0; y--)
-	{
-		for (int z = startZ; z <= endZ; z++)
-		{
-			for (int x = startX; x <= endX; x++)
-			{
-				bool shouldAddBlockInstance = false;
-
-				if (x > prevEndX || z > prevEndZ || x < prevStartX || z < prevStartZ)
-				{
-					shouldAddBlockInstance = true;
-				}
-
-				if (shouldAddBlockInstance)
-				{
-					if (y == (40 - 1) / 2)
-					{
-						numBlocksAdded++;
-						grass.placeBlock(glm::vec3(x, y, z), false);
-					}
-				}
-			}
-		}
-	}
-
-	printf("Num Blocks Added: %d\n", numBlocksAdded);
-
-	/*
-	 * Update the Matrix Models
-	 */
-	if (!grass.getBlockModels().empty()) {
-		grass.updateBlockInstanceModels(UpdateType::AddMultipleElements);
-	}
-
-	if (!dirt.getBlockModels().empty()) {
-		dirt.updateBlockInstanceModels(UpdateType::AddMultipleElements);
-	}
-
-	if (!stone.getBlockModels().empty()) {
-		stone.updateBlockInstanceModels(UpdateType::AddMultipleElements);
-	}
-
-	prevStartX = startX;
-	prevEndX = endX;
-	prevStartZ = startZ;
-	prevEndZ = endZ;
+	chunks.emplace_back(Chunk(textureAtlas, glm::vec3(0, 0, 0)));
+	chunks.emplace_back(Chunk(textureAtlas, glm::vec3(16, 0, 0)));
+	chunks.emplace_back(Chunk(textureAtlas, glm::vec3(0, 0, 16)));
+	chunks.emplace_back(Chunk(textureAtlas, glm::vec3(16, 0, 16)));
 }
 
 void World::update(glm::vec3 cameraPos)
 {
-	if (!hasAddedNewStoneBlock)
-	{
-		stone.placeBlock(
-			glm::vec3(0, 50, 0),
-			true
-		);
+	// TODO: Get the 12x12 chunk positions
+	// TODO: Delete chunks that aren't one of the positions
+	// TODO: Add the new chunks to be loaded in
 
-		hasAddedNewStoneBlock = true;
-	}
+
 }
 
 void World::draw(TextureAtlas& textureAtlas, glm::mat4 viewProjection)
 {
-	grass.drawAll(textureAtlas, viewProjection);
-	dirt.drawAll(textureAtlas, viewProjection);
-	stone.drawAll(textureAtlas, viewProjection);
+	for (Chunk& chunk : chunks)
+	{
+		chunk.draw(viewProjection);
+	}
 }

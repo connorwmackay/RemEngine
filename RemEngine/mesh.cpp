@@ -3,6 +3,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "world.h"
+#include <cstddef>
 
 Mesh createColouredCube(glm::vec3 colour)
 {
@@ -249,4 +250,48 @@ Mesh createTexturedBlock(TextureAtlas& textureAtlas, const BlockType& blockType)
 	glUniform1i(textureSamplerLoc, 0);
 
 	return block;
+}
+
+AMesh createMesh(std::vector<AVertex> vertices, std::vector<GLuint> indices, std::vector<ATexture> textures)
+{
+	AMesh mesh{};
+	mesh.vertices = vertices;
+	mesh.indices = indices;
+	mesh.textures = textures;
+
+	glGenVertexArrays(1, &mesh.vao);
+	glGenBuffers(1, &mesh.vbo);
+	glGenBuffers(1, &mesh.ebo);
+
+	glBindVertexArray(mesh.vao);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+	glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size() * sizeof(AVertex), &mesh.vertices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.indices.size() * sizeof(GLuint), &mesh.indices[0], GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(AVertex), (void*)0);
+
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(AVertex), (void*) offsetof(AVertex, normal));
+
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(AVertex), (void*) offsetof(AVertex, textureCoord));
+
+	glBindVertexArray(0);
+
+	return mesh;
+}
+
+void drawMesh(const AMesh& mesh)
+{
+	GLuint diffuseNum = 1;
+	GLuint specularNum = 1;
+
+	for (GLuint i = 0; i < mesh.textures.size(); i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		std::string number;
+	}
 }
