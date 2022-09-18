@@ -10,6 +10,8 @@ protected:
 	TextureAtlas textureAtlas;
 	glm::vec3 prevCameraPos;
 	std::vector<Chunk> chunks;
+
+	glm::vec3 chunkPositions[11][11];
 public:
 	World();
 	World(TextureAtlas& textureAtlas);

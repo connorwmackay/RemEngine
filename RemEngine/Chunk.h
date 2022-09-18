@@ -8,7 +8,7 @@
 class Chunk
 {
 protected:
-	TextureAtlas& textureAtlas;
+	TextureAtlas textureAtlas;
 	Block grass;
 	Block dirt;
 	Block stone;
