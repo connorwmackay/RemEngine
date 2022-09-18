@@ -142,9 +142,11 @@
   <ItemGroup>
     <ClCompile Include="..\ExternalLibs\glad\src\glad.c" />
     <ClCompile Include="block.cpp" />
+    <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="gameInstance.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
+    <ClCompile Include="renderer.cpp" />
     <ClCompile Include="world.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="spectator.cpp" />
@@ -153,8 +155,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="block.h" />
+    <ClInclude Include="Chunk.h" />
     <ClInclude Include="gameInstance.h" />
     <ClInclude Include="mesh.h" />
+    <ClInclude Include="renderer.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="spectator.h" />
     <ClInclude Include="textureAtlas.h" />

@@ -157,24 +157,20 @@ Block::Block(TextureAtlas& textureAtlas, const BlockType& blockType)
 
 	ShaderProgram blockShader = createShaderProgram("Assets/block.vert", "Assets/block.frag");
 
-	GLuint cubeVao;
 	glGenVertexArrays(1, &cubeVao);
 	glBindVertexArray(cubeVao);
 
-	GLuint cubeVbo;
 	glGenBuffers(1, &cubeVbo);
 	glBindBuffer(GL_ARRAY_BUFFER, cubeVbo);
 	glBufferData(GL_ARRAY_BUFFER, blockVerts.size() * sizeof(GLfloat), blockVerts.data(), GL_STATIC_DRAW);
-
-	GLuint cubeEbo;
+	
 	glGenBuffers(1, &cubeEbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeEbo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, blockIndices.size() * sizeof(GLint), blockIndices.data(), GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
 	glEnableVertexAttribArray(0);
-
-	GLuint textureVbo;
+	
 	glGenBuffers(1, &textureVbo);
 	glBindBuffer(GL_ARRAY_BUFFER, textureVbo);
 	glBufferData(GL_ARRAY_BUFFER, textureCoordinates.size() * sizeof(GLfloat), textureCoordinates.data(), GL_STATIC_DRAW);
@@ -375,18 +371,35 @@ std::vector<glm::vec3>& Block::getBlockModels()
 
 void Block::removeOutsideBounds(int startX, int endX, int startZ, int endZ)
 {
-	int numRemoved = 0;
-	for (int i=0; i < blockModels.size(); i++)
+	for (int i = 0; i < blockModels.size(); i++)
 	{
 		glm::vec3& pos = blockModels.at(i);
 
-		if (pos.z < startZ || pos.z > endZ
-			|| pos.x < startX || pos.x > endX)
+		if ((pos.x > endX || pos.x < startX) || (pos.z > endZ || pos.z < startZ))
 		{
 			blockModels.erase(std::begin(blockModels) + i);
-			numRemoved++;
 		}
 	}
+}
 
-	printf("Num Blocks Removed: %d\n", numRemoved);
+bool Block::isBlockAtPos(glm::vec3 pos)
+{
+	if (findBlockIndex(pos) == -1)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void Block::release()
+{
+	glDeleteBuffers(1, &lastModelBuffer);
+	glDeleteBuffers(1, &mesh.vao);
+	glDeleteBuffers(1, &cubeVbo);
+	glDeleteBuffers(1, &cubeEbo);
+	glDeleteBuffers(1, &textureVbo);
+
+	glDeleteProgram(mesh.shaderProgram);
+	blockModels.erase(blockModels.begin(), blockModels.end());
 }

@@ -27,22 +27,30 @@ protected:
 	BlockType type;
 	Mesh mesh;
 
+	GLuint cubeVao;
+	GLuint cubeVbo;
+	GLuint cubeEbo;
+	GLuint textureVbo;
+
 	std::vector<glm::vec3> blockModels;
 
 	GLuint lastModelBuffer;
 
 	// Returns -1 if the block doesn't exist
 	int findBlockIndex(const glm::vec3& pos);
+	int binarySearch(const glm::vec3& pos, int low, int high);
 public:
 	Block();
 	Block(TextureAtlas& textureAtlas, const BlockType& blockType);
 
 	// Update index is only used if updating an element
+
 	void updateBlockInstanceModels(const UpdateType& updateType, int updateIndex = -1);
 
 	void placeBlock(const glm::vec3& pos, bool shouldUpdateModels);
 	void updateBlock(const glm::vec3& pos, bool shouldUpdateModels);
 	void deleteBlock(const glm::vec3& pos, bool shouldUpdateModels);
+	bool isBlockAtPos(glm::vec3 pos);
 
 	std::vector<glm::vec3>& getBlockModels();
 
@@ -50,4 +58,6 @@ public:
 	
 	// Draw all instances of this block
 	void drawAll(TextureAtlas& textureAtlas, glm::mat4 viewProjection);
+
+	void release();
 };
