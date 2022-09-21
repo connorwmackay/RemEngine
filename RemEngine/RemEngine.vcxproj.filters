@@ -99,5 +99,11 @@
   <ItemGroup>
     <None Include="Assets\block.vert" />
     <None Include="Assets\block.frag" />
+    <None Include="..\ExternalLibs\FastNoise2\bin\FastNoise.dll">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\ExternalLibs\FastNoise2\bin\FastNoiseD.dll">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

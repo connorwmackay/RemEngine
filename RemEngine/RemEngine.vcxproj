@@ -71,9 +71,9 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\Connor\source\repos\RemEngine\ExternalLibs\rapidjson-1.1.0\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\boost_1_80_0;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\stb_image;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\assimp\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glfw-3.3.7.bin.WIN64\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glad\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glm-0.9.9.8\glm;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Connor\source\repos\RemEngine\ExternalLibs\assimp\lib\Release;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glfw-3.3.7.bin.WIN64\lib-vc2022;$(LibraryPath)</LibraryPath>
-    <ExecutablePath>C:\Users\Connor\source\repos\RemEngine\ExternalLibs\assimp\bin\Release;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glfw-3.3.7.bin.WIN64\lib-vc2022;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>C:\Users\Connor\source\repos\RemEngine\ExternalLibs\FastNoise2\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\rapidjson-1.1.0\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\boost_1_80_0;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\stb_image;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\assimp\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glfw-3.3.7.bin.WIN64\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glad\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glm-0.9.9.8\glm;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Connor\source\repos\RemEngine\ExternalLibs\FastNoise2\lib;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\assimp\lib\Release;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glfw-3.3.7.bin.WIN64\lib-vc2022;$(LibraryPath)</LibraryPath>
+    <ExecutablePath>C:\Users\Connor\source\repos\RemEngine\ExternalLibs\FastNoise2\bin;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\assimp\bin\Release;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glfw-3.3.7.bin.WIN64\lib-vc2022;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>C:\Users\Connor\source\repos\RemEngine\ExternalLibs\rapidjson-1.1.0\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\boost_1_80_0;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\stb_image;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\assimp\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glfw-3.3.7.bin.WIN64\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glad\include;C:\Users\Connor\source\repos\RemEngine\ExternalLibs\glm-0.9.9.8\glm;$(IncludePath)</IncludePath>
@@ -114,11 +114,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;FastNoise.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -174,6 +175,8 @@
     <Image Include="Assets\textureAtlas.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\ExternalLibs\FastNoise2\bin\FastNoise.dll" />
+    <None Include="..\ExternalLibs\FastNoise2\bin\FastNoiseD.dll" />
     <None Include="Assets\block.frag" />
     <None Include="Assets\block.vert" />
   </ItemGroup>

@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
+#include <thread>
 
 #include "block.h"
 #include "spectator.h"
@@ -41,8 +42,10 @@ protected:
 
 	World world;
 
+	double deltaTime;
+
 	// Update all Game Objects etc...
-	void update(double deltaTime);
+	void update();
 
 	// Perform all the draw calls etc..
 	void render();
