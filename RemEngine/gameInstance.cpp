@@ -31,6 +31,7 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 	deltaTime(0.0f)
 {
 	assert(glfwInit());
+	srand(time(NULL)); // Randomize seed
 
 	//  GLFW settings
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
