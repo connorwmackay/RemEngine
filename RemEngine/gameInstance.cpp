@@ -53,7 +53,7 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 
 	// Perform an initial clear and buffer swap
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Clear to Black
+	glClearColor(0.0f, 0.2f, 0.6f, 1.0f); // Clear to Blue
 	glfwSwapBuffers(window);
 
 	// Setup projection
@@ -76,6 +76,7 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 
 void GameInstance::update(double deltaTime)
 {
+	float startTimeInMs = glfwGetTime() * 1000;
 	handleWindowResize();
 
 	// Keyboard Input
@@ -93,14 +94,17 @@ void GameInstance::update(double deltaTime)
 	viewProjection = projection * view;
 
 	world.update(spectator.getTransform().translationGet());
+	float endTimeInMs = glfwGetTime() * 1000;
 }
 
 void GameInstance::render()
 {
+	float startTimeInMs = glfwGetTime() * 1000;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Clear to Black
+	glClearColor(0.0f, 0.6f, 0.6f, 1.0f);
 
 	world.draw(textureAtlas, viewProjection);
+	float endTimeInMs = glfwGetTime() * 1000;
 }
 
 void GameInstance::cleanup()

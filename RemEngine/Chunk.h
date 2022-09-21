@@ -17,6 +17,7 @@ public:
 	Chunk(TextureAtlas& textureAtlas, glm::vec3 position);
 
 	void draw(glm::mat4 viewProjection);
+	void replace(glm::vec3 pos);
 	void release();
 
 	void getChunkBounds(glm::vec3& position, glm::vec3& size);
