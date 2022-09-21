@@ -4,6 +4,12 @@
 
 #include "Chunk.h"
 
+struct ChunkPosElem
+{
+	glm::vec3 pos;
+	bool isNull;
+};
+
 class World
 {
 protected:

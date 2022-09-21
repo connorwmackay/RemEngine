@@ -32,7 +32,8 @@ World::World(TextureAtlas& textureAtlas)
 
 void World::update(glm::vec3 cameraPos)
 {
-	glm::vec3 chunkPositions[11][11];
+	std::vector<glm::vec3> chunkPositions = std::vector<glm::vec3>();
+	std::vector<int> indexesToRemove = std::vector<int>();
 
 	glm::vec3 middleChunkPos = glm::vec3(
 		findClosestNumber(cameraPos.x, 16),
@@ -47,7 +48,6 @@ void World::update(glm::vec3 cameraPos)
 	);
 
 	// Find each chunk position
-	glm::vec3 *chunksNotLoaded[11][11];
 	for (int z=0; z < 11; z++)
 	{
 		for (int x=0; x < 11; x++)
@@ -58,8 +58,7 @@ void World::update(glm::vec3 cameraPos)
 				findClosestNumber(firstChunkPos.z + z * 16, 16)
 			);
 
-			chunkPositions[z][x] = chunkPos;
-			chunksNotLoaded[z][x] = &chunkPositions[z][x];
+			chunkPositions.push_back(chunkPos);
 		}
 	}
 	
@@ -70,35 +69,38 @@ void World::update(glm::vec3 cameraPos)
 
 		chunks.at(i).getChunkBounds(chunkPos, chunkSize);
 
-		bool isChunkOutOfBounds = true;
-		for (int z = 0; z < 11; z++)
+		bool isOutOfBounds = true;
+		for (int i=0; i < chunkPositions.size(); i++)
 		{
-			for (int x = 0; x < 11; x++)
+			if (chunkPos == chunkPositions.at(i))
 			{
-				if (chunkPositions[z][x] == chunkPos)
-				{
-					isChunkOutOfBounds = false;
-					chunksNotLoaded[z][x] = nullptr;
-				}
+				isOutOfBounds = false;
+				chunkPositions.erase(chunkPositions.begin() + i);
 			}
 		}
 
-		if (isChunkOutOfBounds) {
-			chunks.at(i).release();
-			chunks.erase(chunks.begin() + i);
-		}
-	}
-
-	for (int z = 0; z < 11; z++)
-	{
-		for (int x = 0; x < 11; x++)
+		if (isOutOfBounds)
 		{
-			if (chunksNotLoaded[z][x] != nullptr) {
-				glm::vec3 notLoadedPos = *chunksNotLoaded[z][x];
-				chunks.emplace_back(Chunk(textureAtlas, notLoadedPos));
-			}
+			indexesToRemove.push_back(i);
 		}
 	}
+
+	for (glm::vec3 chunkPos : chunkPositions)
+	{
+		if (!indexesToRemove.empty()) {
+			Chunk& chunk = chunks.at(indexesToRemove.at(0));
+
+			chunk.replace(chunkPos);
+			indexesToRemove.erase(indexesToRemove.begin());
+		}
+		else
+		{
+			Chunk newChunk = Chunk(textureAtlas, chunkPos);
+			chunks.push_back(newChunk);
+		}
+	}
+
+	printf("Chunks Updated: %d/%d chunks.\n", chunks.size(), 11*11);
 }
 
 void World::draw(TextureAtlas& textureAtlas, glm::mat4 viewProjection)

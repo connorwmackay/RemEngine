@@ -50,6 +50,7 @@ public:
 	void placeBlock(const glm::vec3& pos, bool shouldUpdateModels);
 	void updateBlock(const glm::vec3& pos, bool shouldUpdateModels);
 	void deleteBlock(const glm::vec3& pos, bool shouldUpdateModels);
+	void resetBlocks();
 	bool isBlockAtPos(glm::vec3 pos);
 
 	std::vector<glm::vec3>& getBlockModels();

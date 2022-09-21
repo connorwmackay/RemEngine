@@ -353,14 +353,19 @@ void Block::drawAll(TextureAtlas& textureAtlas, glm::mat4 viewProjection)
 {
 	if (!blockModels.empty())
 	{
-		glUseProgram(mesh.shaderProgram);
-		glBindTexture(GL_TEXTURE_2D, textureAtlas.getTexture());
-		glBindVertexArray(mesh.vao);
+		if (glIsProgram(mesh.shaderProgram) 
+			&& glIsTexture(textureAtlas.getTexture()) 
+			&& glIsVertexArray(mesh.vao))
+		{
+			glUseProgram(mesh.shaderProgram);
+			glBindTexture(GL_TEXTURE_2D, textureAtlas.getTexture());
+			glBindVertexArray(mesh.vao);
 
-		GLint vpLoc = glGetUniformLocation(mesh.shaderProgram, "viewProjection");
-		glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(viewProjection));
+			GLint vpLoc = glGetUniformLocation(mesh.shaderProgram, "viewProjection");
+			glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(viewProjection));
 
-		glDrawElementsInstanced(GL_TRIANGLES, mesh.numVertices, GL_UNSIGNED_INT, 0, blockModels.size());
+			glDrawElementsInstanced(GL_TRIANGLES, mesh.numVertices, GL_UNSIGNED_INT, 0, blockModels.size());
+		}
 	}
 }
 
@@ -394,12 +399,26 @@ bool Block::isBlockAtPos(glm::vec3 pos)
 
 void Block::release()
 {
+	blockModels.clear();
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glDeleteBuffers(1, &lastModelBuffer);
 	glDeleteBuffers(1, &mesh.vao);
-	glDeleteBuffers(1, &cubeVbo);
+	glDeleteBuffers(1, &cubeVbo);	
 	glDeleteBuffers(1, &cubeEbo);
 	glDeleteBuffers(1, &textureVbo);
 
+	glUseProgram(0);
 	glDeleteProgram(mesh.shaderProgram);
-	blockModels.erase(blockModels.begin(), blockModels.end());
+}
+
+void Block::resetBlocks()
+{
+	blockModels.clear();
+
+	if (!blockModels.empty())
+	{
+		printf("Blocks models vector is not empty.\n");
+	}
 }
