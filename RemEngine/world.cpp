@@ -104,15 +104,12 @@ void World::update(glm::vec3 cameraPos)
 			Chunk& chunk = chunks.at(indexesToRemove.at(0));
 
 			chunk.setChunkPosition(chunkPos);
-			chunk.isBeingUpdated = true;
 			chunk.replace();
-			chunk.updateBlocks();
 			indexesToRemove.erase(indexesToRemove.begin());
 		}
 		else
 		{
-			Chunk newChunk = Chunk(textureAtlas, fnSimplex, fnFractal, chunkPos);
-			chunks.push_back(newChunk);
+			chunks.push_back(Chunk(textureAtlas, fnSimplex, fnFractal, chunkPos));
 		}
 	}
 }

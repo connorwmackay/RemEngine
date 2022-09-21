@@ -1,4 +1,6 @@
 #pragma once
+#include <atomic>
+#include <future>
 #include <vector>
 #include <FastNoise/FastNoise.h>
 
@@ -18,17 +20,21 @@ protected:
 	FastNoise::SmartNode<FastNoise::FractalFBm> fnFractal;
 
 	glm::vec3 position;
+
+	bool isBeingUpdated = false;
+	std::shared_future<bool> updateFuture;
+
+	bool asyncReplace();
 public:
+	Chunk();
 	Chunk(TextureAtlas& textureAtlas, FastNoise::SmartNode<FastNoise::Simplex> simplex, FastNoise::SmartNode<FastNoise::FractalFBm> fractal, glm::vec3 position);
 
 	void draw(glm::mat4 viewProjection);
 	void setChunkPosition(glm::vec3 pos);
-	void replace();
+	bool replace();
 	void release();
 
 	void updateBlocks();
-
-	bool isBeingUpdated;
 
 	void getChunkBounds(glm::vec3& position, glm::vec3& size);
 };

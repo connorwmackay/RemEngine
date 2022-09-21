@@ -11,9 +11,13 @@ float GetGrassYValFromNoise(glm::vec3 chunkPosition, float noise)
 	float yMin = 0;
 
 	yVal = abs(floor(noise * (yMax - yMin) + yMin));
-	printf("Equivelent y value: %f\n", yVal);
 
 	return yVal;
+}
+
+Chunk::Chunk()
+{
+	
 }
 
 Chunk::Chunk(TextureAtlas& textureAtlas, FastNoise::SmartNode<FastNoise::Simplex> simplex, FastNoise::SmartNode<FastNoise::FractalFBm> fractal, glm::vec3 position)
@@ -22,7 +26,7 @@ Chunk::Chunk(TextureAtlas& textureAtlas, FastNoise::SmartNode<FastNoise::Simplex
 	fnSimplex(simplex),
 	fnFractal(fractal),
 	position(position),
-	isBeingUpdated(false)
+	updateFuture(std::shared_future<bool>())
 {
 	std::vector<float> noise(CHUNK_SIZE.x * CHUNK_SIZE.z);
 	fnFractal->GenUniformGrid2D(
@@ -72,9 +76,8 @@ Chunk::Chunk(TextureAtlas& textureAtlas, FastNoise::SmartNode<FastNoise::Simplex
 	stone.updateBlockInstanceModels(UpdateType::AddMultipleElements);
 }
 
-void Chunk::replace()
+bool Chunk::asyncReplace()
 {
-	isBeingUpdated = true;
 	grass.resetBlocks();
 	dirt.resetBlocks();
 	stone.resetBlocks();
@@ -119,6 +122,15 @@ void Chunk::replace()
 			noiseIndex++;
 		}
 	}
+
+	isBeingUpdated = true;
+	return true;
+}
+
+bool Chunk::replace()
+{
+	updateFuture = std::async(std::launch::async, &Chunk::asyncReplace, this);
+	return true;
 }
 
 void Chunk::updateBlocks()
@@ -129,7 +141,6 @@ void Chunk::updateBlocks()
 	isBeingUpdated = false;
 }
 
-
 void Chunk::setChunkPosition(glm::vec3 pos)
 {
 	position = pos;
@@ -137,6 +148,11 @@ void Chunk::setChunkPosition(glm::vec3 pos)
 
 void Chunk::draw(glm::mat4 viewProjection)
 {
+
+	if (updateFuture.valid()) {
+		updateBlocks();
+	}
+
 	grass.drawAll(textureAtlas, viewProjection);
 	dirt.drawAll(textureAtlas, viewProjection);
 	stone.drawAll(textureAtlas, viewProjection);
