@@ -27,23 +27,3 @@ struct AVertex
 	glm::vec3 normal;
 	glm::vec3 textureCoord;
 };
-
-struct ATexture
-{
-	GLuint id;
-	std::string type;
-};
-
-// TODO: This will be used in a future Model class, that will use Assimp.
-struct AMesh
-{
-	std::vector<AVertex> vertices;
-	std::vector<GLuint> indices;
-	std::vector<ATexture> textures;
-	GLuint vao;
-	GLuint vbo;
-	GLuint ebo;
-};
-
-AMesh createMesh(std::vector<AVertex> vertices, std::vector<GLuint> indices, std::vector<ATexture> textures);
-void drawMesh(const AMesh& mesh);
