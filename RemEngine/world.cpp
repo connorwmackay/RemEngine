@@ -1,5 +1,7 @@
 #include "world.h"
 
+#include <future>
+#include <thread>
 #include <GLFW/glfw3.h>
 
 int findClosestNumber(int val, int multiple)
@@ -25,13 +27,24 @@ World::World()
 World::World(TextureAtlas& textureAtlas)
 	: textureAtlas(textureAtlas),
 	prevCameraPos(glm::vec3(.0f, 1, 0.0)),
-	chunks(std::vector<Chunk>())
+	chunks(std::vector<Chunk>()),
+	cameraPos(0, 0, 0)
+{
+	fnSimplex = FastNoise::New<FastNoise::Simplex>();
+	fnFractal = FastNoise::New<FastNoise::FractalFBm>();
+
+	fnFractal->SetSource(fnSimplex);
+	fnFractal->SetOctaveCount(2);
+}
+
+void World::asyncUpdate()
 {
 	
 }
 
 void World::update(glm::vec3 cameraPos)
 {
+	this->cameraPos = cameraPos;
 	std::vector<glm::vec3> chunkPositions = std::vector<glm::vec3>();
 	std::vector<int> indexesToRemove = std::vector<int>();
 
@@ -48,9 +61,9 @@ void World::update(glm::vec3 cameraPos)
 	);
 
 	// Find each chunk position
-	for (int z=0; z < 11; z++)
+	for (int z = 0; z < 11; z++)
 	{
-		for (int x=0; x < 11; x++)
+		for (int x = 0; x < 11; x++)
 		{
 			glm::vec3 chunkPos = glm::vec3(
 				findClosestNumber(firstChunkPos.x + x * 16, 16),
@@ -61,8 +74,8 @@ void World::update(glm::vec3 cameraPos)
 			chunkPositions.push_back(chunkPos);
 		}
 	}
-	
-	for (int i=0; i < chunks.size(); i++)
+
+	for (int i = 0; i < chunks.size(); i++)
 	{
 		glm::vec3 chunkPos;
 		glm::vec3 chunkSize;
@@ -70,7 +83,7 @@ void World::update(glm::vec3 cameraPos)
 		chunks.at(i).getChunkBounds(chunkPos, chunkSize);
 
 		bool isOutOfBounds = true;
-		for (int i=0; i < chunkPositions.size(); i++)
+		for (int i = 0; i < chunkPositions.size(); i++)
 		{
 			if (chunkPos == chunkPositions.at(i))
 			{
@@ -90,17 +103,18 @@ void World::update(glm::vec3 cameraPos)
 		if (!indexesToRemove.empty()) {
 			Chunk& chunk = chunks.at(indexesToRemove.at(0));
 
-			chunk.replace(chunkPos);
+			chunk.setChunkPosition(chunkPos);
+			chunk.isBeingUpdated = true;
+			chunk.replace();
+			chunk.updateBlocks();
 			indexesToRemove.erase(indexesToRemove.begin());
 		}
 		else
 		{
-			Chunk newChunk = Chunk(textureAtlas, chunkPos);
+			Chunk newChunk = Chunk(textureAtlas, fnSimplex, fnFractal, chunkPos);
 			chunks.push_back(newChunk);
 		}
 	}
-
-	printf("Chunks Updated: %d/%d chunks.\n", chunks.size(), 11*11);
 }
 
 void World::draw(TextureAtlas& textureAtlas, glm::mat4 viewProjection)

@@ -1,6 +1,7 @@
 #pragma once
 #include "block.h"
 #include <boost/multi_array.hpp>
+#include <FastNoise/FastNoise.h>
 
 #include "Chunk.h"
 
@@ -17,7 +18,16 @@ protected:
 	glm::vec3 prevCameraPos;
 	std::vector<Chunk> chunks;
 
+	FastNoise::SmartNode<FastNoise::Simplex> fnSimplex;
+	FastNoise::SmartNode<FastNoise::FractalFBm> fnFractal;
+
+	std::vector<float> noise;
+
 	glm::vec3 chunkPositions[11][11];
+
+	glm::vec3 cameraPos;
+
+	void asyncUpdate();
 public:
 	World();
 	World(TextureAtlas& textureAtlas);

@@ -1,4 +1,5 @@
 #include "gameInstance.h"
+#include <future>
 
 void GLAPIENTRY
 MessageCallback(GLenum source,
@@ -26,7 +27,8 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 	lastKnownWindowSize(glm::vec2(width, height)),
 	frameTimeElapsed(0.0),
 	spectator(12.0f, 0.2f, Transform(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(45.0f, 0.0f, 0.0f), glm::vec3(1.0f), true)),
-	world(World())
+	world(World()),
+	deltaTime(0.0f)
 {
 	assert(glfwInit());
 
@@ -74,7 +76,7 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 	world = World(textureAtlas);
 }
 
-void GameInstance::update(double deltaTime)
+void GameInstance::update()
 {
 	float startTimeInMs = glfwGetTime() * 1000;
 	handleWindowResize();
@@ -123,7 +125,7 @@ void GameInstance::runGameLoop()
 		double mouseStartX, mouseStartY;
 		glfwGetCursorPos(window, &mouseStartX, &mouseStartY);
 
-		update(frameTimeElapsed);
+		update();
 		render();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -133,7 +135,7 @@ void GameInstance::runGameLoop()
 		mouseOffset = glm::vec2(mouseStartX - mouseEndX, mouseEndY - mouseStartY);
 
 		double endFrameTimeElapsed = glfwGetTime();
-		frameTimeElapsed = endFrameTimeElapsed - startFrameTimeElapsed;
+		deltaTime = endFrameTimeElapsed - startFrameTimeElapsed;
 	}
 
 	cleanup();

@@ -1,74 +1,139 @@
 #include "Chunk.h"
 
-Chunk::Chunk(TextureAtlas& textureAtlas, glm::vec3 position)
+#include <FastNoise/FastNoise.h>
+#include <cstdlib>
+
+float GetGrassYValFromNoise(glm::vec3 chunkPosition, float noise)
+{
+	float yVal = 0.0f;
+
+	float yMax = 16;
+	float yMin = 0;
+
+	yVal = abs(floor(noise * (yMax - yMin) + yMin));
+	printf("Equivelent y value: %f\n", yVal);
+
+	return yVal;
+}
+
+Chunk::Chunk(TextureAtlas& textureAtlas, FastNoise::SmartNode<FastNoise::Simplex> simplex, FastNoise::SmartNode<FastNoise::FractalFBm> fractal, glm::vec3 position)
 	: textureAtlas(textureAtlas), grass(textureAtlas, BlockType::Grass),
 	dirt(textureAtlas, BlockType::Dirt), stone(textureAtlas, BlockType::Stone),
-	position(position)
+	fnSimplex(simplex),
+	fnFractal(fractal),
+	position(position),
+	isBeingUpdated(false)
 {
-	for (int y = position.y; y >= position.y-CHUNK_SIZE.y; y--)
+	std::vector<float> noise(CHUNK_SIZE.x * CHUNK_SIZE.z);
+	fnFractal->GenUniformGrid2D(
+		noise.data(),
+		position.x, position.z,
+		CHUNK_SIZE.x, CHUNK_SIZE.z,
+		0.01f, rand() % 1000000
+	);
+
+	for (float& noiseVal : noise)
 	{
-		for (int z=position.z; z < position.z + CHUNK_SIZE.z; z++)
+		GetGrassYValFromNoise(position, noiseVal);
+	}
+
+	float noiseIndex = 0;
+	for (int z = position.z; z < position.z + CHUNK_SIZE.z; z++)
+	{
+		for (int x = position.x; x < position.x + CHUNK_SIZE.x; x++)
 		{
-			for (int x=position.x; x < position.x + CHUNK_SIZE.x; x++)
+			float grassYVal = GetGrassYValFromNoise(position, noise.at(noiseIndex)) + position.y;
+
+			for (int y = position.y; y <= position.y + CHUNK_SIZE.y; y++)
 			{
 				glm::vec3 actualPosition = glm::vec3(x, y, z);
 
-				if (y == 0) {
+				if (y == (int)grassYVal) {
 					grass.placeBlock(actualPosition, false);
-				} else if (y < 0 && y > -5)
+				}
+				else if (y < grassYVal && y > grassYVal-5)
 				{
 					dirt.placeBlock(actualPosition, false);
 				}
-				else if (y <= -5)
+				else if (y <= grassYVal - 5)
 				{
 					stone.placeBlock(actualPosition, false);
 				}
-
 			}
+
+			noiseIndex++;
 		}
 	}
+
+	
 
 	grass.updateBlockInstanceModels(UpdateType::AddMultipleElements);
 	dirt.updateBlockInstanceModels(UpdateType::AddMultipleElements);
 	stone.updateBlockInstanceModels(UpdateType::AddMultipleElements);
 }
 
-void Chunk::replace(glm::vec3 pos)
+void Chunk::replace()
 {
-	position = pos;
+	isBeingUpdated = true;
 	grass.resetBlocks();
 	dirt.resetBlocks();
 	stone.resetBlocks();
 
-	for (int y = pos.y; y >= pos.y - CHUNK_SIZE.y; y--)
+	std::vector<float> noise(CHUNK_SIZE.x * CHUNK_SIZE.z);
+	fnFractal->GenUniformGrid2D(
+		noise.data(),
+		position.x, position.z,
+		CHUNK_SIZE.x, CHUNK_SIZE.z,
+		0.01f, rand() % 1000000
+	);
+
+	for (float& noiseVal : noise)
 	{
-		for (int z = pos.z; z < pos.z + CHUNK_SIZE.z; z++)
+		GetGrassYValFromNoise(position, noiseVal);
+	}
+
+	float noiseIndex = 0;
+	for (int z = position.z; z < position.z + CHUNK_SIZE.z; z++)
+	{
+		for (int x = position.x; x < position.x + CHUNK_SIZE.x; x++)
 		{
-			for (int x = pos.x; x < pos.x + CHUNK_SIZE.x; x++)
+			float grassYVal = GetGrassYValFromNoise(position, noise.at(noiseIndex)) + position.y;
+
+			for (int y = position.y; y <= position.y + CHUNK_SIZE.y; y++)
 			{
 				glm::vec3 actualPosition = glm::vec3(x, y, z);
 
-				if (y == 0) {
+				if (y == (int)grassYVal) {
 					grass.placeBlock(actualPosition, false);
 				}
-				else if (y < 0 && y > -5)
+				else if (y < grassYVal && y > grassYVal - 5)
 				{
 					dirt.placeBlock(actualPosition, false);
 				}
-				else if (y <= -5)
+				else if (y <= grassYVal - 5)
 				{
 					stone.placeBlock(actualPosition, false);
 				}
-
 			}
+
+			noiseIndex++;
 		}
 	}
+}
 
+void Chunk::updateBlocks()
+{
 	grass.updateBlockInstanceModels(UpdateType::AddMultipleElements);
 	dirt.updateBlockInstanceModels(UpdateType::AddMultipleElements);
 	stone.updateBlockInstanceModels(UpdateType::AddMultipleElements);
+	isBeingUpdated = false;
 }
 
+
+void Chunk::setChunkPosition(glm::vec3 pos)
+{
+	position = pos;
+}
 
 void Chunk::draw(glm::mat4 viewProjection)
 {
