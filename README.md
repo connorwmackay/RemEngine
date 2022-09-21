@@ -8,3 +8,4 @@ Rem Engine is a work in-progress Minecraft clone, being written in C++ with Open
 - GLAD
 - GLM
 - STB Image
+- FastNoise2
