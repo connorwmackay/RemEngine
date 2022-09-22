@@ -155,7 +155,7 @@ Block::Block(TextureAtlas& textureAtlas, const BlockType& blockType)
 	textureCoordinates.push_back(blockTexture.faces.bottom.position.x);
 	textureCoordinates.push_back(blockTexture.faces.bottom.position.y);
 
-	ShaderProgram blockShader = createShaderProgram("Assets/block.vert", "Assets/block.frag");
+	ShaderProgram blockShader = createShaderProgram("../Assets/block.vert", "../Assets/block.frag");
 
 	glGenVertexArrays(1, &cubeVao);
 	glBindVertexArray(cubeVao);

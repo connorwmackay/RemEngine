@@ -1,6 +1,5 @@
 #pragma once
-#include <boost/array.hpp>
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include "mesh.h"
 #include "transform.h"
 

@@ -1,6 +1,5 @@
 #pragma once
 #include "block.h"
-#include <boost/multi_array.hpp>
 #include <FastNoise/FastNoise.h>
 
 #include "Chunk.h"

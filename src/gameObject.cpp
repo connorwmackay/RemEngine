@@ -1,6 +1,7 @@
 #include "gameObject.h"
 
 #include "world.h"
+#include <glm/gtc/type_ptr.hpp>
 
 GameObject::GameObject(const Mesh& mesh, const Transform& transform, const glm::mat4& viewProjection)
 	: mesh(mesh), transform(transform)
