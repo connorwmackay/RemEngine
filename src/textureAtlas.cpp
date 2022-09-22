@@ -4,7 +4,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #endif
 
-#include <stb_image.h>
+#include "../external/stb_image.h"
 
 TextureAtlas::TextureAtlas()
 {
@@ -19,7 +19,7 @@ TextureAtlas::TextureAtlas(bool useless)
 
 	// Give OpenGL the texture data
 	int width, height, numChannels;
-	unsigned char* data = stbi_load("Assets/textureAtlas.png", &width, &height, &numChannels, 3);
+	unsigned char* data = stbi_load("../Assets/textureAtlas.png", &width, &height, &numChannels, 3);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);

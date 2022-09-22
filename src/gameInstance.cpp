@@ -1,5 +1,6 @@
 #include "gameInstance.h"
 #include <future>
+#include <assert.h>
 
 void GLAPIENTRY
 MessageCallback(GLenum source,
@@ -43,7 +44,7 @@ GameInstance::GameInstance(float fieldOfView, const char* title, unsigned int wi
 	glfwSwapInterval(0); // 1 for VSYNC, 0 for no VSYNC
 
 	// OpenGL Setup
-	assert(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress));
+	assert(gladLoadGL(glfwGetProcAddress));
 
 	// OpenGL Settings
 	glDepthMask(GL_TRUE);
