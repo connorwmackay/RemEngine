@@ -102,7 +102,6 @@ void World::update(glm::vec3 cameraPos)
 	{
 		if (!indexesToRemove.empty()) {
 			Chunk& chunk = chunks.at(indexesToRemove.at(0));
-
 			chunk.setChunkPosition(chunkPos);
 			chunk.replace();
 			indexesToRemove.erase(indexesToRemove.begin());

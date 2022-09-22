@@ -12,9 +12,6 @@ class Chunk
 {
 protected:
 	TextureAtlas textureAtlas;
-	Block grass;
-	Block dirt;
-	Block stone;
 
 	FastNoise::SmartNode<FastNoise::Simplex> fnSimplex;
 	FastNoise::SmartNode<FastNoise::FractalFBm> fnFractal;

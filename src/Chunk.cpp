@@ -21,8 +21,7 @@ Chunk::Chunk()
 }
 
 Chunk::Chunk(TextureAtlas& textureAtlas, FastNoise::SmartNode<FastNoise::Simplex> simplex, FastNoise::SmartNode<FastNoise::FractalFBm> fractal, glm::vec3 position)
-	: textureAtlas(textureAtlas), grass(textureAtlas, BlockType::Grass),
-	dirt(textureAtlas, BlockType::Dirt), stone(textureAtlas, BlockType::Stone),
+	: textureAtlas(textureAtlas),
 	fnSimplex(simplex),
 	fnFractal(fractal),
 	position(position),
@@ -53,15 +52,15 @@ Chunk::Chunk(TextureAtlas& textureAtlas, FastNoise::SmartNode<FastNoise::Simplex
 				glm::vec3 actualPosition = glm::vec3(x, y, z);
 
 				if (y == (int)grassYVal) {
-					grass.placeBlock(actualPosition, false);
+					//grass.placeBlock(actualPosition, false);
 				}
 				else if (y < grassYVal && y > grassYVal-5)
 				{
-					dirt.placeBlock(actualPosition, false);
+					//dirt.placeBlock(actualPosition, false);
 				}
 				else if (y <= grassYVal - 5)
 				{
-					stone.placeBlock(actualPosition, false);
+					//stone.placeBlock(actualPosition, false);
 				}
 			}
 
@@ -69,18 +68,20 @@ Chunk::Chunk(TextureAtlas& textureAtlas, FastNoise::SmartNode<FastNoise::Simplex
 		}
 	}
 
-	
+    //grass.useOnlyBlocksExposedToAir();
+    //dirt.useOnlyBlocksExposedToAir();
+    //stone.useOnlyBlocksExposedToAir();
 
-	grass.updateBlockInstanceModels(UpdateType::AddMultipleElements);
-	dirt.updateBlockInstanceModels(UpdateType::AddMultipleElements);
-	stone.updateBlockInstanceModels(UpdateType::AddMultipleElements);
+	//grass.updateBlockInstanceModels(UpdateType::AddMultipleElements);
+	//dirt.updateBlockInstanceModels(UpdateType::AddMultipleElements);
+	//stone.updateBlockInstanceModels(UpdateType::AddMultipleElements);
 }
 
 bool Chunk::asyncReplace()
 {
-	grass.resetBlocks();
-	dirt.resetBlocks();
-	stone.resetBlocks();
+	//grass.resetBlocks();
+	//dirt.resetBlocks();
+	//stone.resetBlocks();
 
 	std::vector<float> noise(CHUNK_SIZE.x * CHUNK_SIZE.z);
 	fnFractal->GenUniformGrid2D(
@@ -107,21 +108,25 @@ bool Chunk::asyncReplace()
 				glm::vec3 actualPosition = glm::vec3(x, y, z);
 
 				if (y == (int)grassYVal) {
-					grass.placeBlock(actualPosition, false);
+					//grass.placeBlock(actualPosition, false);
 				}
 				else if (y < grassYVal && y > grassYVal - 5)
 				{
-					dirt.placeBlock(actualPosition, false);
+					//dirt.placeBlock(actualPosition, false);
 				}
 				else if (y <= grassYVal - 5)
 				{
-					stone.placeBlock(actualPosition, false);
+					//stone.placeBlock(actualPosition, false);
 				}
 			}
 
 			noiseIndex++;
 		}
 	}
+
+    //grass.useOnlyBlocksExposedToAir();
+    //dirt.useOnlyBlocksExposedToAir();
+    //stone.useOnlyBlocksExposedToAir();
 
 	isBeingUpdated = true;
 	return true;
@@ -135,9 +140,9 @@ bool Chunk::replace()
 
 void Chunk::updateBlocks()
 {
-	grass.updateBlockInstanceModels(UpdateType::AddMultipleElements);
-	dirt.updateBlockInstanceModels(UpdateType::AddMultipleElements);
-	stone.updateBlockInstanceModels(UpdateType::AddMultipleElements);
+	//grass.updateBlockInstanceModels(UpdateType::AddMultipleElements);
+	//dirt.updateBlockInstanceModels(UpdateType::AddMultipleElements);
+	//stone.updateBlockInstanceModels(UpdateType::AddMultipleElements);
 	isBeingUpdated = false;
 }
 
@@ -153,16 +158,16 @@ void Chunk::draw(glm::mat4 viewProjection)
 		updateBlocks();
 	}
 
-	grass.drawAll(textureAtlas, viewProjection);
-	dirt.drawAll(textureAtlas, viewProjection);
-	stone.drawAll(textureAtlas, viewProjection);
+	//grass.drawAll(textureAtlas, viewProjection);
+	//dirt.drawAll(textureAtlas, viewProjection);
+	//stone.drawAll(textureAtlas, viewProjection);
 }
 
 void Chunk::release()
 {
-	grass.release();
-	dirt.release();
-	stone.release();
+	//grass.release();
+	//dirt.release();
+	//stone.release();
 }
 
 void Chunk::getChunkBounds(glm::vec3& position, glm::vec3& size)

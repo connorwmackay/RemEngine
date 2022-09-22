@@ -18,12 +18,3 @@ struct Mesh
 
 Mesh createColouredCube(glm::vec3 colour);
 Mesh createTexturedBlock(TextureAtlas& textureAtlas, const BlockType& blockType);
-
-// New Mesh stuff
-
-struct AVertex
-{
-	glm::vec3 position;
-	glm::vec3 normal;
-	glm::vec3 textureCoord;
-};

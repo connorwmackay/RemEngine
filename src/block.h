@@ -16,48 +16,27 @@ enum class UpdateType
 	InitElements
 };
 
-/*
- * A specific type of block i.e. Grass Block, which isn't a game object itself,
- * but stores many instances of the block that are game objects.
- */
-class Block
+enum class BlockFaces
 {
-protected:
-	BlockType type;
-	Mesh mesh;
-
-	GLuint cubeVao;
-	GLuint cubeVbo;
-	GLuint cubeEbo;
-	GLuint textureVbo;
-
-	std::vector<glm::vec3> blockModels;
-
-	GLuint lastModelBuffer;
-
-	// Returns -1 if the block doesn't exist
-	int findBlockIndex(const glm::vec3& pos);
-	int binarySearch(const glm::vec3& pos, int low, int high);
-public:
-	Block();
-	Block(TextureAtlas& textureAtlas, const BlockType& blockType);
-
-	// Update index is only used if updating an element
-
-	void updateBlockInstanceModels(const UpdateType& updateType, int updateIndex = -1);
-
-	void placeBlock(const glm::vec3& pos, bool shouldUpdateModels);
-	void updateBlock(const glm::vec3& pos, bool shouldUpdateModels);
-	void deleteBlock(const glm::vec3& pos, bool shouldUpdateModels);
-	void resetBlocks();
-	bool isBlockAtPos(glm::vec3 pos);
-
-	std::vector<glm::vec3>& getBlockModels();
-
-	void removeOutsideBounds(int startX, int endX, int startZ, int endZ);
-	
-	// Draw all instances of this block
-	void drawAll(TextureAtlas& textureAtlas, glm::mat4 viewProjection);
-
-	void release();
+    Top,
+    Bottom,
+    Left,
+    Right,
+    Front,
+    Back
 };
+
+struct Block
+{
+    std::vector<BlockFaces> visibleFaces;
+    BlockType type;
+    glm::vec3 pos;
+};
+
+/* Get the mesh information for a particular block face */
+std::vector<GLfloat> GetBlockFaceVertices(BlockFaces face);
+std::vector<GLint> GetBlockFaceIndices(BlockFaces face, int offset);
+std::vector<GLfloat> GetBlockTextureCoordinates(BlockFaces face, BlockType type, TextureAtlas &textureAtlas);
+
+/* Find the faces that aren't facing another block */
+void FindVisibleFacesInBlocks(std::vector<Block>& blocks);
